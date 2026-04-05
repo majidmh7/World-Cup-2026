@@ -1,0 +1,265 @@
+/* Basis Reset & Variabelen */
+:root {
+    --primary-color: #2563eb;
+    --bg-color: #f3f4f6;
+    --card-bg: #ffffff;
+    --text-color: #1f2937;
+    --border-radius: 12px;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+/* App Containers */
+.screen {
+    display: none; /* Standaard verborgen */
+    width: 100%;
+    max-width: 500px; /* Houdt het compact op desktop, vol scherm op mobiel */
+    background-color: var(--bg-color);
+    flex-direction: column;
+}
+
+.screen.active {
+    display: flex; /* Zichtbaar maken via JS */
+}
+
+/* Taalscherm Styling */
+#language-screen {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    height: 100vh;
+}
+
+#language-screen h1 {
+    margin-bottom: 30px;
+    font-size: 24px;
+}
+
+#language-screen small {
+    font-size: 18px;
+    font-weight: normal;
+    color: #6b7280;
+}
+
+/* Knoppen */
+.btn-primary {
+    display: block;
+    width: 100%;
+    padding: 15px;
+    margin-bottom: 15px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius);
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.btn-primary:active {
+    opacity: 0.8;
+}
+
+/* Hoofdscherm Layout */
+header {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 20px;
+    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.container {
+    padding: 20px;
+}
+
+/* Wedstrijd Kaartjes */
+.match-card {
+    background-color: var(--card-bg);
+    padding: 15px;
+    border-radius: var(--border-radius);
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.team {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 45%;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* Zorgt dat het uit-team de score links heeft en de naam rechts */
+.team.away {
+    flex-direction: row-reverse;
+    text-align: right;
+}
+
+.score-input {
+    width: 60px; /* Iets breder voor de dropdown */
+    height: 45px;
+    text-align: center;
+    font-size: 16px;
+    font-weight: bold;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background-color: #f9fafb;
+    cursor: pointer;
+    appearance: none; /* Verwijdert standaard styling voor een strakkere look */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    padding-left: 10px; /* Zorgt dat de tekst mooi in het midden staat */
+}
+
+.vs {
+    font-weight: bold;
+    color: #9ca3af;
+    font-size: 14px;
+}
+
+.group-title {
+    margin-top: 25px;
+    margin-bottom: 15px;
+    color: var(--primary-color);
+    border-bottom: 2px solid var(--primary-color);
+    padding-bottom: 5px;
+}
+
+/* Standen Tabel */
+.standings-container {
+    width: 100%;
+    overflow-x: auto; /* Zorgt dat het op kleine schermen opzij kan scrollen */
+    margin-top: 10px;
+    margin-bottom: 40px;
+    background: var(--card-bg);
+    border-radius: var(--border-radius);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.standings-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    min-width: 400px; /* Voorkomt dat de tabel te veel in elkaar gedrukt wordt */
+}
+
+.standings-table th, .standings-table td {
+    padding: 10px 8px;
+    text-align: center;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.standings-table th {
+    background-color: #f9fafb;
+    color: #6b7280;
+    font-weight: 600;
+    font-size: 12px;
+}
+
+.standings-table td.team-name {
+    text-align: left;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.standings-table tr:last-child td {
+    border-bottom: none;
+}
+
+.standings-table .pts {
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+/* Knock-out Kaartjes */
+.ko-card {
+    background-color: var(--card-bg);
+    padding: 15px;
+    border-radius: var(--border-radius);
+    margin-bottom: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    border-left: 4px solid var(--primary-color);
+}
+
+.ko-match-title {
+    font-size: 12px;
+    color: #6b7280;
+    margin-bottom: 10px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.ko-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.ko-select {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background-color: #f9fafb;
+}
+
+/* Knock-out & Bonus Styling */
+.round-title {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 10px;
+    border-radius: 8px;
+    margin-top: 30px;
+    margin-bottom: 15px;
+    text-align: center;
+    font-size: 18px;
+}
+
+.bonus-card {
+    background-color: var(--card-bg);
+    padding: 20px;
+    border-radius: var(--border-radius);
+    margin-bottom: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    border-left: 4px solid #f59e0b; /* Gouden randje voor bonus */
+}
+
+.bonus-card h4 {
+    margin-bottom: 15px;
+    color: var(--text-color);
+}
+
+.ko-match-label {
+    font-size: 15px;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 15px;
+    color: var(--text-color);
+    background-color: #f3f4f6;
+    padding: 10px;
+    border-radius: 8px;
+}

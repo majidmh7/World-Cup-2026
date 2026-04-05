@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="nl">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2563eb">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>WK 2026 Familie Poule</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="language-screen" class="screen active">
+        <div class="lang-container">
+            <h1>Kies je taal<br><small>Elige tu idioma</small></h1>
+            <button class="btn-primary" onclick="initApp('nl')">🇳🇱 Nederlands</button>
+            <button class="btn-primary" onclick="initApp('es')">🇪🇸 Español</button>
+        </div>
+    </div>
+
+    <div id="name-screen" class="screen">
+        <div class="lang-container" style="text-align: center; padding: 20px;">
+            <h2 id="ui-name-title" style="margin-bottom: 20px;">Wie ben je?</h2>
+            
+            <input type="text" id="name-input" placeholder="Je naam..." 
+                   style="width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box;">
+            
+            <button class="btn-primary" onclick="submitName()">Starten</button>
+        </div>
+    </div>
+
+    <div id="app-screen" class="screen">
+        <header><h2 id="ui-title">WK 2026 Poule</h2></header>
+        <main class="container">
+            <h3 id="ui-welcome">Welkom!</h3>
+            <p id="ui-instructions" style="margin-bottom: 20px;">Vul hieronder je voorspellingen in.</p>
+            <div id="groups-container"></div>
+        </main>
+    </div>
+
+    <div id="knockout-screen" class="screen">
+        <header><h2 id="ui-ko-title">Knock-out Fase</h2></header>
+        <main class="container">
+            <p style="margin-bottom: 20px;" id="ui-ko-desc">Kies de winnaars van elke ronde.</p>
+            <div id="knockout-container"></div>
+        </main>
+    </div>
+
+    <div id="bonus-screen" class="screen">
+        <header><h2 id="ui-bonus-title">Bonus Vragen 🎁</h2></header>
+        <main class="container">
+            <p style="margin-bottom: 20px;" id="ui-bonus-desc">Verdien extra punten met deze voorspellingen!</p>
+            <div id="bonus-container"></div>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js');
+            });
+        }
+    </script>
+</body>
+</html>
