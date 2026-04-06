@@ -563,33 +563,39 @@ function renderBonus() {
     const container = document.getElementById('bonus-container');
     const teamOptions = `<option value="" disabled selected>${t.koSelectCountry}</option>` + allTeamsFlat.map(team => `<option value="${team}">${team}</option>`).join('');
     
-    const sTop = savedDatabaseData['bonus_topscorer'] || "";
-    const sKaarten = savedDatabaseData['bonus_kaarten'] || "";
-    const sOwn = savedDatabaseData['bonus_owngoals'] || "";
-    const sMin = savedDatabaseData['bonus_minuut'] || "";
-
+    // 1. Bouw de schone HTML, ZONDER direct de opgeslagen data erin te proppen
     container.innerHTML = `
         <div class="bonus-card">
             <h4>${t.bq1}</h4>
-            <input type="text" id="bonus_topscorer" class="ko-select" placeholder="${t.bExPlayer}" value="${sTop}">
+            <input type="text" id="bonus_topscorer" class="ko-select" placeholder="${t.bExPlayer}">
         </div>
         <div class="bonus-card">
             <h4>${t.bq2}</h4>
-            <select id="bonus_kaarten" class="ko-select"><option value="${sKaarten}" selected>${sKaarten || t.koSelectCountry}</option>${teamOptions}</select>
+            <select id="bonus_kaarten" class="ko-select">${teamOptions}</select>
         </div>
         <div class="bonus-card">
             <h4>${t.bq3}</h4>
-            <select id="bonus_owngoals" class="ko-select"><option value="${sOwn}" selected>${sOwn || t.koSelectCountry}</option>${teamOptions}</select>
+            <select id="bonus_owngoals" class="ko-select">${teamOptions}</select>
         </div>
         <div class="bonus-card">
             <h4>${t.bq4}</h4>
-            <input type="number" id="bonus_minuut" class="ko-select" placeholder="${t.bExMin}" value="${sMin}">
+            <input type="number" id="bonus_minuut" class="ko-select" placeholder="${t.bExMin}">
         </div>
         <div style="display: flex; gap: 8px; margin-top: 20px; margin-bottom: 50px;">
             <button class="btn-primary" onclick="switchScreen('bonus-screen', 'knockout-screen')" style="flex: 1; background-color: #6b7280; font-size: 14px;">${t.btnBack}</button>
             <button class="btn-primary" id="save-btn-final" onclick="collectAndSave()" style="flex: 2; background-color: #10b981; font-size: 14px;">${t.btnSaveAll}</button>
         </div>
     `;
+
+    // 2. NADAT de HTML op het scherm staat: Vul de opgeslagen data veilig in
+    const bonusIds = ['bonus_topscorer', 'bonus_kaarten', 'bonus_owngoals', 'bonus_minuut'];
+    bonusIds.forEach(id => {
+        const element = document.getElementById(id);
+        // Als het element bestaat én we hebben er data voor opgeslagen in Google Sheets
+        if (element && savedDatabaseData[id]) {
+            element.value = savedDatabaseData[id];
+        }
+    });
 }
 
 // ==========================================
