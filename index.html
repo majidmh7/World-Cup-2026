@@ -25,7 +25,7 @@
             <input type="text" id="name-input" placeholder="Je naam..." 
                    style="width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box;">
             
-            <button class="btn-primary" onclick="submitName()">Starten</button>
+            <button id="ui-btn-start" class="btn-primary" onclick="submitName()">Starten</button>
         </div>
     </div>
 
@@ -42,6 +42,9 @@
         <header><h2 id="ui-ko-title">Knock-out Fase</h2></header>
         <main class="container">
             <p style="margin-bottom: 20px;" id="ui-ko-desc">Kies de winnaars van elke ronde.</p>
+            
+            <div id="bracket-visualization" style="overflow-x: auto; margin-bottom: 30px; padding-bottom: 10px;"></div>
+            
             <div id="knockout-container"></div>
         </main>
     </div>

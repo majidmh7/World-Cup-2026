@@ -263,3 +263,58 @@ header {
     padding: 10px;
     border-radius: 8px;
 }
+
+/* ==========================================
+   BRACKET VISUALISATIE (LLAVE)
+   ========================================== */
+.bracket-wrapper {
+    display: flex;
+    gap: 20px;
+    min-width: max-content; /* Zorgt dat het horizontaal scrollt op mobiel */
+    font-size: 12px;
+}
+
+.bracket-column {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    gap: 10px;
+}
+
+.bracket-match {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background: var(--card-bg);
+    overflow: hidden;
+    min-width: 140px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.bracket-team {
+    padding: 6px 10px;
+    border-bottom: 1px solid #e5e7eb;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: background-color 0.3s;
+}
+
+.bracket-team:last-child {
+    border-bottom: none;
+}
+
+.bracket-team.winner {
+    font-weight: bold;
+    background-color: #d1fae5; /* Lichtgroen voor winnaar */
+    color: #065f46;
+}
+
+.bracket-team.empty {
+    color: #9ca3af;
+    font-style: italic;
+}

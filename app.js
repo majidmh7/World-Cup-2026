@@ -4,10 +4,11 @@
 const translations = {
     nl: { 
         title: "WK 2026 Poule", welcome: "Welkom bij de Familie Poule!", instructions: "Vul hieronder de uitslagen in.",
-        nameTitle: "Wie ben je?", koTitle: "Knock-out Fase", koDesc: "Kies de winnaars van elke ronde.",
+        nameTitle: "Wie ben je?", namePlaceholder: "Je naam...", btnStart: "Starten", 
+        koTitle: "Knock-out Fase", koDesc: "Kies de winnaars van elke ronde.",
         bonusTitle: "Bonus Vragen 🎁", bonusDesc: "Verdien extra punten met deze voorspellingen!",
         btnSave: "Opslaan", btnSaving: "Opslaan...", btnToKnockout: "Knock-outs ➡️", btnBack: "⬅️ Terug",
-        btnToBonus: "Naar Bonus Vragen 🎁", btnSaveAll: "Alles Opslaan ✅", alertFillGroup: "Vul de groepsfase in!",
+        btnToBonus: "Naar Bonus 🎁", btnSaveAll: "Alles Opslaan ✅", alertFillGroup: "Vul de groepsfase in!",
         alertSaved: "Alles succesvol opgeslagen! 🎉", alertError: "Fout bij opslaan. Check je internetverbinding.",
         alertName: "Geldige naam a.u.b.", koSelectCountry: "Selecteer land...", koWinMethod: "Manier van winnen?",
         koWin1: "Winnaar met 1 goal verschil", koWin2: "Winnaar met 2 goals verschil", koWin3: "Winnaar met 3+ goals verschil",
@@ -20,10 +21,11 @@ const translations = {
     },
     es: { 
         title: "Quiniela Mundial 2026", welcome: "¡Bienvenidos a la Quiniela Familiar!", instructions: "Introduce los resultados a continuación.",
-        nameTitle: "¿Quién eres?", koTitle: "Fase Eliminatoria", koDesc: "Elige los ganadores de cada ronda.",
+        nameTitle: "¿Quién eres?", namePlaceholder: "Tu nombre...", btnStart: "Empezar",
+        koTitle: "Fase Eliminatoria", koDesc: "Elige los ganadores de cada ronda.",
         bonusTitle: "Preguntas Extra 🎁", bonusDesc: "¡Gana puntos extra con estas predicciones!",
         btnSave: "Guardar", btnSaving: "Guardando...", btnToKnockout: "Eliminatorias ➡️", btnBack: "⬅️ Volver",
-        btnToBonus: "Preguntas Extra 🎁", btnSaveAll: "Guardar Todo ✅", alertFillGroup: "¡Completa la fase de grupos!",
+        btnToBonus: "Extra 🎁", btnSaveAll: "Guardar Todo ✅", alertFillGroup: "¡Completa la fase de grupos!",
         alertSaved: "¡Todo guardado con éxito! 🎉", alertError: "Error al guardar. Revisa tu conexión.",
         alertName: "Nombre válido por favor.", koSelectCountry: "Selecciona un país...", koWinMethod: "¿Cómo ganaron?",
         koWin1: "Ganador por 1 gol", koWin2: "Ganador por 2 goles", koWin3: "Ganador por 3+ goles",
@@ -41,6 +43,58 @@ let savedDatabaseData = {};
 
 // ---> PLAK HIER JOUW GOOGLE SCRIPT LINK TUSSEN DE AANHALINGSTEKENS <---
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwsvpBcZFTEWBdVvskYtM1slnLNi116ru5zS7v6PdVjBIF22KXoXTPvYlXyJpXJMa6E/exec'; 
+
+// ==========================================
+// FIFA 2026: 495-RIJEN LOOKUP TABEL
+// ==========================================
+let fifa3rdPlaceTable = {};
+
+function generateFifa495Table() {
+    // De 8 groepswinnaars die tegen een 3e plek spelen
+    const hostGroups = ['E', 'I', 'A', 'L', 'D', 'G', 'B', 'K'];
+    const allGroupsList = ['A','B','C','D','E','F','G','H','I','J','K','L'];
+    
+    // Wiskundige functie om alle 495 mogelijke combinaties van 8 letters te vinden
+    function getCombinations(array, size) {
+        const result = [];
+        function p(t, i) {
+            if (t.length === size) { result.push(t); return; }
+            if (i + 1 > array.length) return;
+            p(t.concat(array[i]), i + 1);
+            p(t, i + 1);
+        }
+        p([], 0);
+        return result;
+    }
+
+    const all495Combinations = getCombinations(allGroupsList, 8);
+
+    // Bouw de tabel met 495 rijen
+    all495Combinations.forEach(combo => {
+        const comboKey = combo.join(''); // Bijv: "ABCDEFGH"
+        let assignment = {};
+        
+        function backtrack(index) {
+            if (index === 8) return true;
+            for (let i = 0; i < 8; i++) {
+                const host = hostGroups[i];
+                const third = combo[index];
+                if (!assignment[host] && third !== host) {
+                    assignment[host] = third;
+                    if (backtrack(index + 1)) return true;
+                    delete assignment[host];
+                }
+            }
+            return false;
+        }
+        
+        backtrack(0);
+        fifa3rdPlaceTable[comboKey] = assignment; // Sla de specifieke mapping op in de tabel
+    });
+}
+
+// Genereer de 495-rijen tabel direct bij het inladen van de code
+generateFifa495Table();
 
 // ==========================================
 // 2. ALLE 12 GROEPEN (MEERTALIG)
@@ -92,7 +146,12 @@ function applyTranslations() {
     if (document.getElementById('ui-title')) document.getElementById('ui-title').innerText = t.title;
     if (document.getElementById('ui-welcome')) document.getElementById('ui-welcome').innerText = t.welcome;
     if (document.getElementById('ui-instructions')) document.getElementById('ui-instructions').innerText = t.instructions;
+    
+    // Toegevoegd voor het naam scherm
     if (document.getElementById('ui-name-title')) document.getElementById('ui-name-title').innerText = t.nameTitle;
+    if (document.getElementById('name-input')) document.getElementById('name-input').placeholder = t.namePlaceholder;
+    if (document.getElementById('ui-btn-start')) document.getElementById('ui-btn-start').innerText = t.btnStart;
+
     if (document.getElementById('ui-ko-title')) document.getElementById('ui-ko-title').innerText = t.koTitle;
     if (document.getElementById('ui-ko-desc')) document.getElementById('ui-ko-desc').innerText = t.koDesc;
     if (document.getElementById('ui-bonus-title')) document.getElementById('ui-bonus-title').innerText = t.bonusTitle;
@@ -141,9 +200,10 @@ function renderMatches() {
 
     for (const group in allGroups) {
         html += `<h3 class="group-title">Groep ${group} / Grupo ${group}</h3>`;
-        allGroups[group].forEach((_, index) => { if(index >= matchOrder.length) return; 
+        
+        // FIX: Loop over matchOrder (6 wedstrijden) in plaats van de 4 teams.
+        matchOrder.forEach((m, index) => { 
             const matchId = `${group}${index + 1}`;
-            const m = matchOrder[index];
             html += `
             <div class="match-card">
                 <div class="team"><span>${allGroups[group][m[0]][1]} ${allGroups[group][m[0]][0]}</span><select id="${matchId}_home" class="score-input" onchange="calculateGroupStandings('${group}')">${optionsHTML}</select></div>
@@ -154,10 +214,12 @@ function renderMatches() {
         html += `<div id="standings-${group}" class="standings-container"></div>`;
     }
 
+    // FIX: Back, Save, en Knockouts knoppen
     html += `
-    <div style="display: flex; gap: 10px; margin-top: 20px; margin-bottom: 50px;">
-        <button id="save-btn" class="btn-primary" onclick="collectAndSave()" style="flex: 1; background-color: #6b7280;">${t.btnSave}</button>
-        <button class="btn-primary" onclick="startKnockouts()" style="flex: 2;">${t.btnToKnockout}</button>
+    <div style="display: flex; gap: 8px; margin-top: 20px; margin-bottom: 50px;">
+        <button class="btn-primary" onclick="switchScreen('app-screen', 'name-screen')" style="flex: 1; background-color: #6b7280; font-size: 14px;">${t.btnBack}</button>
+        <button id="save-btn" class="btn-primary" onclick="collectAndSave()" style="flex: 1; background-color: #10b981; font-size: 14px;">${t.btnSave}</button>
+        <button class="btn-primary" onclick="startKnockouts()" style="flex: 1; font-size: 14px;">${t.btnToKnockout}</button>
     </div>`;
     container.innerHTML = html;
     
@@ -252,6 +314,7 @@ function updateKnockoutOptions() {
             }
         });
     });
+    updateVisualBracket(); // Zorgt dat de visuele bracket bovenaan ook update
 }
 
 function startKnockouts() {
@@ -274,29 +337,55 @@ function startKnockouts() {
         });
     }
 
-    let bestThirds = thirdPlaces.sort((a, b) => { if(b.pts !== a.pts) return b.pts - a.pts; return b.gd - a.gd; }).slice(0, 8);
+    // 1. Vind de 8 beste nummers 3
+    let bestThirds = thirdPlaces.sort((a, b) => { 
+        if(b.pts !== a.pts) return b.pts - a.pts; 
+        return b.gd - a.gd; 
+    }).slice(0, 8);
 
+    // 2. TABEL LOOKUP: Zoek de exacte combinatie op in de 495-rijen tabel
+    // Sorteer de letters eerst alfabetisch (bijv. "ABCEFGHI")
+    const comboKey = [...bestThirds].map(t => t.group).sort().join('');
+    
+    // Haal het exacte FIFA antwoord uit de tabel
+    const tableResult = fifa3rdPlaceTable[comboKey]; 
+
+    // Koppel het antwoord aan de teamnamen
+    let thirdsMatched = {};
+    for (const hostGroup in tableResult) {
+        const thirdLetter = tableResult[hostGroup];
+        thirdsMatched[hostGroup] = bestThirds.find(t => t.group === thirdLetter);
+    }
+
+    // Hulpfunctie om makkelijk namen op te halen
+    const get1st = (g) => firstPlaces.find(t => t.group === g).name;
+    const get2nd = (g) => secondPlaces.find(t => t.group === g).name;
+    const get3rd = (g) => thirdsMatched[g] ? thirdsMatched[g].name : t.koUnknown;
+
+    // 3. HET OFFICIËLE 2026 ROUND OF 32 SCHEMA
     const matchUps = [
-        [ secondPlaces[0].name, secondPlaces[1].name ], // 2A vs 2B
-        [ firstPlaces[4].name, bestThirds[0].name ],   // 1E vs 3e
-        [ firstPlaces[5].name, secondPlaces[2].name ], // 1F vs 2C
-        [ firstPlaces[2].name, secondPlaces[5].name ], // 1C vs 2F
-        [ firstPlaces[8].name, bestThirds[1].name ],   // 1I vs 3e
-        [ secondPlaces[4].name, secondPlaces[8].name ],// 2E vs 2I
-        [ firstPlaces[0].name, bestThirds[2].name ],   // 1A vs 3e
-        [ firstPlaces[11].name, bestThirds[3].name ],  // 1L vs 3e
-        [ firstPlaces[6].name, bestThirds[4].name ],   // 1G vs 3e
-        [ firstPlaces[3].name, bestThirds[5].name ],   // 1D vs 3e
-        [ firstPlaces[7].name, secondPlaces[9].name ], // 1H vs 2J
-        [ secondPlaces[10].name, secondPlaces[11].name ], // 2K vs 2L
-        [ firstPlaces[1].name, bestThirds[6].name ],   // 1B vs 3e
-        [ secondPlaces[3].name, secondPlaces[6].name ],// 2D vs 2G
-        [ firstPlaces[9].name, secondPlaces[7].name ], // 1J vs 2H
-        [ firstPlaces[10].name, bestThirds[7].name ]   // 1K vs 3e
+        [ get2nd('A'), get2nd('B') ],       // Match 1
+        [ get1st('E'), get3rd('E') ],       // Match 2
+        [ get1st('F'), get2nd('C') ],       // Match 3
+        [ get1st('C'), get2nd('F') ],       // Match 4
+        [ get1st('I'), get3rd('I') ],       // Match 5
+        [ get2nd('E'), get2nd('I') ],       // Match 6
+        [ get1st('A'), get3rd('A') ],       // Match 7
+        [ get1st('L'), get3rd('L') ],       // Match 8
+        [ get1st('D'), get3rd('D') ],       // Match 9
+        [ get1st('G'), get3rd('G') ],       // Match 10
+        [ get2nd('K'), get2nd('L') ],       // Match 11
+        [ get1st('H'), get2nd('J') ],       // Match 12
+        [ get1st('B'), get3rd('B') ],       // Match 13
+        [ get1st('J'), get2nd('H') ],       // Match 14
+        [ get1st('K'), get3rd('K') ],       // Match 15
+        [ get2nd('D'), get2nd('G') ]        // Match 16
     ];
 
     switchScreen('app-screen', 'knockout-screen');
+    if (typeof renderVisualBracket === "function") renderVisualBracket(matchUps);
     renderKnockoutBracket(matchUps);
+    if (typeof updateVisualBracket === "function") updateVisualBracket();
 }
 
 function renderKnockoutBracket(matchUps) {
@@ -349,10 +438,12 @@ function renderKnockoutBracket(matchUps) {
         }
     });
 
+    // FIX: Back, Save, en Bonus knoppen
     html += `
-    <div style="display: flex; gap: 10px; margin-top: 20px; margin-bottom: 50px;">
-        <button class="btn-primary" onclick="switchScreen('knockout-screen', 'app-screen')" style="flex: 1; background-color: #6b7280;">${t.btnBack}</button>
-        <button class="btn-primary" onclick="startBonus()" style="flex: 2;">${t.btnToBonus}</button>
+    <div style="display: flex; gap: 8px; margin-top: 20px; margin-bottom: 50px;">
+        <button class="btn-primary" onclick="switchScreen('knockout-screen', 'app-screen')" style="flex: 1; background-color: #6b7280; font-size: 14px;">${t.btnBack}</button>
+        <button id="save-btn-ko" class="btn-primary" onclick="collectAndSave()" style="flex: 1; background-color: #10b981; font-size: 14px;">${t.btnSave}</button>
+        <button class="btn-primary" onclick="startBonus()" style="flex: 1; font-size: 14px;">${t.btnToBonus}</button>
     </div>`;
     
     container.innerHTML = html;
@@ -373,6 +464,80 @@ function renderKnockoutBracket(matchUps) {
             }
         }
         updateKnockoutOptions(); 
+    });
+}
+
+function renderVisualBracket(matchUps) {
+    const container = document.getElementById('bracket-visualization');
+    if (!container) return;
+    
+    const rounds = ["R32", "R16", "QF", "SF", "F"];
+    const counts = [16, 8, 4, 2, 1];
+    const t = translations[currentLang];
+    
+    let html = '<div class="bracket-wrapper">';
+    
+    rounds.forEach((round, rIdx) => {
+        html += `<div class="bracket-column" id="bracket-col-${round}">`;
+        for (let i = 1; i <= counts[rIdx]; i++) {
+            const matchId = `${round}_${i}`;
+            let t1 = "", t2 = "";
+            if (round === "R32") {
+                t1 = matchUps[i-1][0];
+                t2 = matchUps[i-1][1];
+            }
+            html += `
+                <div class="bracket-match" id="vis_match_${matchId}">
+                    <div class="bracket-team ${round==='R32'?'':'empty'}" id="vis_team1_${matchId}">${t1 || t.koUnknown}</div>
+                    <div class="bracket-team ${round==='R32'?'':'empty'}" id="vis_team2_${matchId}">${t2 || t.koUnknown}</div>
+                </div>
+            `;
+        }
+        html += `</div>`;
+    });
+    
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+function updateVisualBracket() {
+    const rounds = ["R32", "R16", "QF", "SF", "F"];
+    const counts = [16, 8, 4, 2, 1];
+    const t = translations[currentLang];
+    
+    rounds.forEach((round, rIdx) => {
+        for (let i = 1; i <= counts[rIdx]; i++) {
+            const matchId = `${round}_${i}`;
+            const targetEl1 = document.getElementById(`vis_team1_${matchId}`);
+            const targetEl2 = document.getElementById(`vis_team2_${matchId}`);
+            const winnerSelect = document.getElementById(`${matchId}_winner`);
+            const winner = winnerSelect ? winnerSelect.value : null;
+            
+            if (round !== "R32") {
+                if (!bracketFlow[matchId]) continue;
+                const source1Select = document.getElementById(`${bracketFlow[matchId][0]}_winner`);
+                const source2Select = document.getElementById(`${bracketFlow[matchId][1]}_winner`);
+                
+                const team1 = source1Select && source1Select.value ? source1Select.value : "";
+                const team2 = source2Select && source2Select.value ? source2Select.value : "";
+                
+                if (targetEl1) {
+                    targetEl1.innerText = team1 || t.koUnknown;
+                    targetEl1.className = `bracket-team ${!team1 ? 'empty' : ''}`;
+                }
+                if (targetEl2) {
+                    targetEl2.innerText = team2 || t.koUnknown;
+                    targetEl2.className = `bracket-team ${!team2 ? 'empty' : ''}`;
+                }
+            }
+            
+            // Markeer de winnaar in het groen
+            if (winner && targetEl1 && targetEl1.innerText === winner) targetEl1.classList.add('winner');
+            else if (targetEl1) targetEl1.classList.remove('winner');
+            
+            if (winner && targetEl2 && targetEl2.innerText === winner) targetEl2.classList.add('winner');
+            else if (targetEl2) targetEl2.classList.remove('winner');
+        }
     });
 }
 
@@ -411,9 +576,9 @@ function renderBonus() {
             <h4>${t.bq4}</h4>
             <input type="number" id="bonus_minuut" class="ko-select" placeholder="${t.bExMin}" value="${sMin}">
         </div>
-        <div style="display: flex; gap: 10px; margin-top: 20px; margin-bottom: 50px;">
-            <button class="btn-primary" onclick="switchScreen('bonus-screen', 'knockout-screen')" style="flex: 1; background-color: #6b7280;">${t.btnBack}</button>
-            <button class="btn-primary" id="save-btn-final" onclick="collectAndSave()" style="flex: 2; background-color: #10b981;">${t.btnSaveAll}</button>
+        <div style="display: flex; gap: 8px; margin-top: 20px; margin-bottom: 50px;">
+            <button class="btn-primary" onclick="switchScreen('bonus-screen', 'knockout-screen')" style="flex: 1; background-color: #6b7280; font-size: 14px;">${t.btnBack}</button>
+            <button class="btn-primary" id="save-btn-final" onclick="collectAndSave()" style="flex: 2; background-color: #10b981; font-size: 14px;">${t.btnSaveAll}</button>
         </div>
     `;
 }
@@ -451,10 +616,13 @@ function collectAndSave() {
 async function savePredictions(dataObj) {
     const t = translations[currentLang];
     const userName = localStorage.getItem('poule_user_name');
+    
     const saveBtn = document.getElementById('save-btn');
+    const saveBtnKo = document.getElementById('save-btn-ko'); // Added voor Knockout
     const saveBtnFinal = document.getElementById('save-btn-final');
     
     if (saveBtn) saveBtn.innerText = t.btnSaving;
+    if (saveBtnKo) saveBtnKo.innerText = t.btnSaving;
     if (saveBtnFinal) saveBtnFinal.innerText = t.btnSaving;
 
     try {
@@ -472,6 +640,7 @@ async function savePredictions(dataObj) {
         alert(t.alertError);
     } finally {
         if (saveBtn) saveBtn.innerText = t.btnSave;
+        if (saveBtnKo) saveBtnKo.innerText = t.btnSave;
         if (saveBtnFinal) saveBtnFinal.innerText = t.btnSaveAll;
     }
 }
@@ -479,18 +648,39 @@ async function savePredictions(dataObj) {
 async function loadPredictions() {
     const userName = localStorage.getItem('poule_user_name');
     try {
-        const response = await fetch(`${SCRIPT_URL}?naam=${userName}`);
+        // FIX 1: Add a "cache buster" timestamp to the URL.
+        // This forces the browser to pull fresh data from Google Sheets every single time.
+        const cacheBuster = new Date().getTime();
+        const response = await fetch(`${SCRIPT_URL}?naam=${userName}&t=${cacheBuster}`);
         const data = await response.json();
         
         if (data.status !== "niet gevonden" && !data.error) {
-            savedDatabaseData = JSON.parse(data);
+            
+            // FIX 2: Smart Parsing. 
+            // Depending on how your Google Script is written, the data might be structured differently.
+            // This safely checks where your predictions are hidden without crashing.
+            if (data.voorspellingen) {
+                // If it's wrapped in a 'voorspellingen' key
+                savedDatabaseData = typeof data.voorspellingen === 'string' ? JSON.parse(data.voorspellingen) : data.voorspellingen;
+            } else if (typeof data === 'string') {
+                // If the entire response is a stringified JSON
+                savedDatabaseData = JSON.parse(data);
+            } else {
+                // If the response is already a perfect Object
+                savedDatabaseData = data;
+            }
+
+            // Fill the group stage inputs
             for (const key in savedDatabaseData) {
                 const input = document.getElementById(key);
                 if (input) input.value = savedDatabaseData[key];
             }
+            // Recalculate tables so the loaded scores reflect in the standings
             for (const group in allGroups) calculateGroupStandings(group);
         }
-    } catch (error) { console.error("Fout bij inladen data:", error); }
+    } catch (error) { 
+        console.error("Fout bij inladen data:", error); 
+    }
 }
 
 // ==========================================
