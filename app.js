@@ -286,10 +286,24 @@ function initApp(lang) {
   console.log("➡️ initApp started with language:", lang);
   currentLang = lang;
   localStorage.setItem('poule_lang', lang);
+  
+  // 1. Setup Data & Translations
   setupLanguageData();
   applyTranslations();
+
+  // 2. CRITICAL FIX: Draw the match grids into the HTML before loading data!
+  const groupStage = document.getElementById('group-stage-screen');
+  if (groupStage) {
+    if (typeof renderMatches === 'function') {
+      console.log("➡️ Drawing match layout...");
+      renderMatches();
+    }
+    if (typeof renderBonus === 'function') {
+      renderBonus();
+    }
+  }
   
-  // Safely hide language layout wrappers
+  // 3. Screen Management
   const langScreen = document.getElementById('language-screen');
   if (langScreen) {
     langScreen.classList.remove('active');  
@@ -297,7 +311,6 @@ function initApp(lang) {
   }
 
   const nameScreen = document.getElementById('name-screen');
-  const groupStage = document.getElementById('group-stage-screen');
   const savedName = localStorage.getItem('poule_user_name');
   
   if (nameScreen) {
@@ -308,13 +321,13 @@ function initApp(lang) {
       
       if (groupStage) {
         console.log("➡️ Showing group stage screen.");
-        groupStage.style.display = 'block'; // Force visibility!
+        groupStage.style.display = 'block'; 
         groupStage.classList.add('active');
-        loadPredictions();
+        loadPredictions(); // Now it has boxes to fill!
       }
     } else {
       console.log("➡️ No saved name found. Showing name prompt.");
-      nameScreen.style.display = 'block'; // Force visibility!
+      nameScreen.style.display = 'block'; 
       nameScreen.classList.add('active');
       
       if (groupStage) {
@@ -326,13 +339,12 @@ function initApp(lang) {
     // Fallback if there is no name screen at all
     if (groupStage) {
       console.log("➡️ Fallback: Showing group stage screen.");
-      groupStage.style.display = 'block'; // Force visibility!
+      groupStage.style.display = 'block'; 
       groupStage.classList.add('active');
       loadPredictions();
     }
   }
 }
-
 
 function applyTranslations() {
   const t = translations[currentLang] || translations['nl'];
