@@ -187,7 +187,6 @@ let allGroups = {};
 let allTeamsFlat = [];
 let fifa3rdPlaceTable = {};
 
-setupLanguageData();
 
 // ---> PLAK HIER JOUW GOOGLE SCRIPT LINK TUSSEN DE AANHALINGSTEKENS <---
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwsvpBcZFTEWBdVvskYtM1slnLNi116ru5zS7v6PdVjBIF22KXoXTPvYlXyJpXJMa6E/exec'; 
@@ -261,6 +260,7 @@ const rawGroups = {
     L: [ [{nl: "Engeland", es: "Inglaterra"}, "🏴󠁧󠁢󠁥󠁮󠁧󠁿"], [{nl: "Kroatië", es: "Croacia"}, "🇭🇷"], [{nl: "Ghana", es: "Ghana"}, "🇬🇭"], [{nl: "Panama", es: "Panamá"}, "🇵🇦"] ]
 };
 
+setupLanguageData();
 
 function setupLanguageData() {
     allGroups = {};
