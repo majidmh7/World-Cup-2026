@@ -178,10 +178,16 @@ const translations = {
   }
 };
 
-// Global initialization fallback for all pages
+// ==========================================
+// GLOBALS & VARIABLES (MUST BE AT THE ABSOLUTE TOP)
+// ==========================================
 let currentLang = localStorage.getItem('poule_lang') || 'nl';
-setupLanguageData();
 let savedDatabaseData = {};
+let allGroups = {};
+let allTeamsFlat = [];
+let fifa3rdPlaceTable = {};
+
+setupLanguageData();
 
 // ---> PLAK HIER JOUW GOOGLE SCRIPT LINK TUSSEN DE AANHALINGSTEKENS <---
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwsvpBcZFTEWBdVvskYtM1slnLNi116ru5zS7v6PdVjBIF22KXoXTPvYlXyJpXJMa6E/exec'; 
@@ -189,7 +195,6 @@ const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwsvpBcZFTEWBdVvskYt
 // ==========================================
 // FIFA 2026: 495-RIJEN LOOKUP TABEL
 // ==========================================
-let fifa3rdPlaceTable = {};
 
 function generateFifa495Table() {
     // De 8 groepswinnaars die tegen een 3e plek spelen
@@ -256,8 +261,6 @@ const rawGroups = {
     L: [ [{nl: "Engeland", es: "Inglaterra"}, "🏴󠁧󠁢󠁥󠁮󠁧󠁿"], [{nl: "Kroatië", es: "Croacia"}, "🇭🇷"], [{nl: "Ghana", es: "Ghana"}, "🇬🇭"], [{nl: "Panama", es: "Panamá"}, "🇵🇦"] ]
 };
 
-let allGroups = {};
-let allTeamsFlat = [];
 
 function setupLanguageData() {
     allGroups = {};
