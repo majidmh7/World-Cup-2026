@@ -1,88 +1,94 @@
 <!DOCTYPE html>
-<html lang="nl">
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#2563eb">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WK 2026 Familie Poule</title>
-    <link rel="stylesheet" href="style.css">
-</head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WK 2026 Poule - Menu</title>
+  <link rel="stylesheet" href="style.css"> </head>
 <body>
+  <div class="container" style="text-align: center; padding: 20px;">
+    
+    <div id="gate-language">
+      <h2>Select Language / Seleccione Idioma</h2>
+      <button onclick="setMenuLanguage('nl')">🇳🇱 Nederlands</button>
+      <button onclick="setMenuLanguage('en')">🇺🇸 English</button>
+      <button onclick="setMenuLanguage('es')">🇻🇪 Español</button>
+    </div>
 
-    <div id="main-nav-menu" class="nav-menu" style="display: none; justify-content: space-around; margin-bottom: 20px;">
-  <button id="btn-menu-today" class="btn-menu" onclick="switchTab('today')"></button>
-  <button id="btn-menu-standings" class="btn-menu" onclick="switchTab('standings')"></button>
-  <button id="btn-menu-predictions" class="btn-menu" onclick="switchTab('predictions')"></button>
-</div>
+    <div id="gate-name" style="display: none; margin-top: 20px;">
+      <h2 id="lbl-name-title">Wie ben je?</h2>
+      <input type="text" id="txt-login-name" placeholder="Je naam...">
+      <button id="btn-login-submit" onclick="handleMenuLogin()">Starten</button>
+    </div>
 
-<div id="screen-today" class="tab-screen" style="display: none;">
-  <h2 id="ui-today-title"></h2>
-  <div id="container-today-matches"></div>
-</div>
+    <div id="dashboard-menu" style="display: none; margin-top: 20px;">
+      <h1 id="lbl-welcome">Welkom bij de Poule!</h1>
+      <p id="lbl-instructions">Kies een optie uit het menu:</p>
+      
+      <div style="display: flex; flex-direction: column; gap: 15px; max-width: 300px; margin: 0 auto;">
+        <a href="today.html" class="btn-menu" id="lnk-today" style="text-decoration:none; padding:15px; background:#007bff; color:#fff; border-radius:5px;">📅 Today's Matches</a>
+        <a href="standings.html" class="btn-menu" id="lnk-standings" style="text-decoration:none; padding:15px; background:#28a745; color:#fff; border-radius:5px;">📊 Score Standings</a>
+        <a href="predict.html" class="btn-menu" id="lnk-predict" style="text-decoration:none; padding:15px; background:#fd7e14; color:#fff; border-radius:5px;">📝 My Prediction</a>
+      </div>
+    </div>
 
-<div id="screen-standings" class="tab-screen" style="display: none;">
-  <h2 id="ui-standings-title"></h2>
-  <div id="container-leaderboard"></div>
-</div>
-
-<div id="screen-predictions" class="tab-screen">
   </div>
 
-    <div id="language-screen" class="screen active">
-        <div class="lang-container">
-            <h1>Kies je taal<br><small>Elige tu idioma</small></h1>
-            <button class="btn-primary" onclick="initApp('nl')">🇳🇱 Nederlands</button>
-            <button class="btn-primary" onclick="initApp('es')">🇪🇸 Español</button>
-        </div>
-    </div>
-
-    <div id="name-screen" class="screen">
-        <div class="lang-container" style="text-align: center; padding: 20px;">
-            <h2 id="ui-name-title" style="margin-bottom: 20px;">Wie ben je?</h2>
-            
-            <input type="text" id="name-input" placeholder="Je naam..." 
-                   style="width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box;">
-            
-            <button id="ui-btn-start" class="btn-primary" onclick="submitName()">Starten</button>
-        </div>
-    </div>
-
-    <div id="app-screen" class="screen">
-        <header><h2 id="ui-title">WK 2026 Poule</h2></header>
-        <main class="container">
-            <h3 id="ui-welcome">Welkom!</h3>
-            <p id="ui-instructions" style="margin-bottom: 20px;">Vul hieronder je voorspellingen in.</p>
-            <div id="groups-container"></div>
-        </main>
-    </div>
-
-    <div id="knockout-screen" class="screen">
-        <header><h2 id="ui-ko-title">Knock-out Fase</h2></header>
-        <main class="container">
-            <p style="margin-bottom: 20px;" id="ui-ko-desc">Kies de winnaars van elke ronde.</p>
-            
-            <div id="bracket-visualization" style="overflow-x: auto; margin-bottom: 30px; padding-bottom: 10px;"></div>
-            
-            <div id="knockout-container"></div>
-        </main>
-    </div>
-
-    <div id="bonus-screen" class="screen">
-        <header><h2 id="ui-bonus-title">Bonus Vragen 🎁</h2></header>
-        <main class="container">
-            <p style="margin-bottom: 20px;" id="ui-bonus-desc">Verdien extra punten met deze voorspellingen!</p>
-            <div id="bonus-container"></div>
-        </main>
-    </div>
-
-    <script src="app.js?v=2"></script>
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js');
-            });
+  <script src="app.js"></script>
+  <script>
+    // Simple inline initialization specific to the landing menu lifecycle
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedLang = localStorage.getItem('poule_lang');
+      const savedName = localStorage.getItem('poule_user_name');
+      
+      if (savedLang) {
+        currentLang = savedLang;
+        if (savedName) {
+          showDashboard();
+        } else {
+          document.getElementById('gate-language').style.display = 'none';
+          document.getElementById('gate-name').style.display = 'block';
+          updateMenuLabels();
         }
-    </script>
+      }
+    });
+
+    function setMenuLanguage(lang) {
+      currentLang = lang;
+      localStorage.setItem('poule_lang', lang);
+      document.getElementById('gate-language').style.display = 'none';
+      document.getElementById('gate-name').style.display = 'block';
+      updateMenuLabels();
+    }
+
+    function updateMenuLabels() {
+      const t = translations[currentLang];
+      document.getElementById('lbl-name-title').innerText = t.nameTitle;
+      document.getElementById('txt-login-name').placeholder = t.namePlaceholder;
+      document.getElementById('btn-login-submit').innerText = t.btnStart;
+      document.getElementById('lbl-welcome').innerText = t.welcome;
+      document.getElementById('lbl-instructions').innerText = t.instructions;
+      document.getElementById('lnk-today').innerText = t.menuToday;
+      document.getElementById('lnk-standings').innerText = t.menuStandings;
+      document.getElementById('lnk-predict').innerText = t.menuPredictions;
+    }
+
+    function handleMenuLogin() {
+      const nameInput = document.getElementById('txt-login-name').value.trim();
+      if (!nameInput) {
+        alert(translations[currentLang].alertName);
+        return;
+      }
+      localStorage.setItem('poule_user_name', nameInput);
+      showDashboard();
+    }
+
+    function showDashboard() {
+      document.getElementById('gate-language').style.display = 'none';
+      document.getElementById('gate-name').style.display = 'none';
+      document.getElementById('dashboard-menu').style.display = 'block';
+      updateMenuLabels();
+    }
+  </script>
 </body>
 </html>
