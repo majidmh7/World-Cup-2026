@@ -1049,17 +1049,19 @@ function findMatchPredictionsKey(t1, t2) {
 async function renderTodayMatches(targetDateString) {
   const container = document.getElementById('container-today-matches');
   const t = translations[currentLang] || translations['nl'];
-  container.innerHTML = `<p style="text-align:center; color:#666;">${t.loading}</p>`;
+  container.innerHTML = `<p style="text-align:center; color:#666; font-family:sans-serif; margin-top:20px;">${t.loading}</p>`;
   
   const data = await fetchWorldCupData();
   if (!data || !data.matches) {
-    container.innerHTML = `<p style="text-align:center; padding:20px;">${t.noMatches}</p>`;
+    container.innerHTML = `<p style="text-align:center; padding:20px; font-family:sans-serif;">${t.noMatches}</p>`;
     return;
   }
   
-  const selectedMatches = data.matches.filter(m => m.date === targetDateString);
+  // Strict string match filtering to prevent wrong game assignments
+  const selectedMatches = data.matches.filter(m => String(m.date).trim() === String(targetDateString).trim());
+  
   if (selectedMatches.length === 0) {
-    container.innerHTML = `<p style="text-align:center; padding:20px; color:#777;">${t.noMatches}</p>`;
+    container.innerHTML = `<p style="text-align:center; padding:30px 10px; color:#777; font-family:sans-serif;">${t.noMatches} (${targetDateString})</p>`;
     return;
   }
   
@@ -1071,24 +1073,34 @@ async function renderTodayMatches(targetDateString) {
     const actH = isFinished ? match.score.ft[0] : null;
     const actA = isFinished ? match.score.ft[1] : null;
     
+    // Forced mobile container layout overrides
     html += `
-      <div class="match-card">
-        <div style="font-size:12px; color:#888; font-weight:bold; text-transform:uppercase;">
+      <div style="background:#ffffff; border:1px solid #e0e0e0; border-radius:12px; padding:16px; margin-bottom:20px; box-sizing:border-box; width:100%; display:flex; flex-direction:column; clear:both; text-align:left; font-family:sans-serif; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
+        
+        <div style="font-size:12px; color:#888; font-weight:bold; text-transform:uppercase; margin-bottom:6px; letter-spacing:0.5px;">
           ${t.matchday} ${match.round.replace('Matchday ', '')} ${match.group ? `• ${match.group}` : ''}
         </div>
-        <div class="team-header">${getLocalTeamName(match.team1)} vs ${getLocalTeamName(match.team2)}</div>
-        <div style="font-size:13px; color:#555; margin-bottom:10px;">⏰ ${match.time} @ ${match.ground}</div>
+        
+        <div style="font-size:18px; font-weight:8px; color:#111; margin:5px 0; line-height:1.3;">
+          ${getLocalTeamName(match.team1)} vs ${getLocalTeamName(match.team2)}
+        </div>
+        
+        <div style="font-size:13px; color:#666; margin-bottom:12px; display:flex; align-items:center; gap:4px;">
+          ⏰ ${match.time} @ ${match.ground}
+        </div>
     `;
     
+    // Status / Score Indicator Block
     if (isFinished) {
-      html += `<div style="background:#e2f0d9; color:#385723; padding:8px; border-radius:6px; font-weight:bold; margin-bottom:10px;">Uitslag: ${actH} - ${actA}</div>`;
+      html += `<div style="background:#e2f0d9; color:#385723; padding:10px; border-radius:8px; font-weight:bold; font-size:14px; margin-bottom:15px; border-left:4px solid #385723;">Uitslag: ${actH} - ${actA}</div>`;
     } else {
-      html += `<div style="background:#fff3cd; color:#856404; padding:8px; border-radius:6px; font-weight:bold; margin-bottom:10px;">Scheduled / In Progress</div>`;
+      html += `<div style="background:#fff3cd; color:#856404; padding:10px; border-radius:8px; font-weight:bold; font-size:14px; margin-bottom:15px; border-left:4px solid #856404;">Scheduled / In Progress</div>`;
     }
     
+    // Predictions Segment (Forced to stack below)
     html += `
-      <div class="pred-list">
-        <div style="font-weight:bold; font-size:13px; color:#444; margin-bottom:6px;">📋 ${t.predBy}:</div>
+      <div style="background:#f8f9fa; padding:14px; border-radius:8px; box-sizing:border-box; width:100%; display:flex; flex-direction:column; gap:8px;">
+        <div style="font-weight:bold; font-size:13px; color:#444; border-bottom:1px solid #e9ecef; padding-bottom:6px; margin-bottom:4px;">📋 ${t.predBy}:</div>
     `;
     
     const matchKey = findMatchPredictionsKey(match.team1, match.team2);
@@ -1104,15 +1116,20 @@ async function renderTodayMatches(targetDateString) {
         let calculationText = '';
         if (isFinished) {
           const points = calculateGroupPoints(predH, predA, actH, actA);
-          const feedback = points === 5 ? t.exactScore : (points === 2 ? t.outcomeOnly : t.missed);
           calculationText = ` ➡️ <span style="color:#007bff; font-weight:bold;">(${points} pts)</span>`;
         }
-        html += `<div class="pred-item"><strong>${pName}</strong>: ${predH} - ${predA}${calculationText}</div>`;
+        
+        html += `
+          <div style="display:flex; justify-content:space-between; font-size:14px; padding:4px 0; border-bottom:1px dashed #e9ecef; color:#333;">
+            <span style="font-weight:500;">${pName}</span>
+            <span>${predH} - ${predA}${calculationText}</span>
+          </div>
+        `;
       }
     }
     
     if (totalPredsCount === 0) {
-      html += `<div style="font-size:13px; color:#999; italic;">Geen voorspellingen gevonden.</div>`;
+      html += `<div style="font-size:13px; color:#999; font-style:italic; padding:5px 0;">Geen voorspellingen ingevuld voor deze wedstrijd.</div>`;
     }
     
     html += `</div></div>`;
