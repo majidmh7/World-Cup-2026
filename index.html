@@ -10,6 +10,25 @@
 </head>
 <body>
 
+    <div id="main-nav-menu" class="nav-menu" style="display: none; justify-content: space-around; margin-bottom: 20px;">
+  <button id="btn-menu-today" class="btn-menu" onclick="switchTab('today')"></button>
+  <button id="btn-menu-standings" class="btn-menu" onclick="switchTab('standings')"></button>
+  <button id="btn-menu-predictions" class="btn-menu" onclick="switchTab('predictions')"></button>
+</div>
+
+<div id="screen-today" class="tab-screen" style="display: none;">
+  <h2 id="ui-today-title"></h2>
+  <div id="container-today-matches"></div>
+</div>
+
+<div id="screen-standings" class="tab-screen" style="display: none;">
+  <h2 id="ui-standings-title"></h2>
+  <div id="container-leaderboard"></div>
+</div>
+
+<div id="screen-predictions" class="tab-screen">
+  </div>
+
     <div id="language-screen" class="screen active">
         <div class="lang-container">
             <h1>Kies je taal<br><small>Elige tu idioma</small></h1>
