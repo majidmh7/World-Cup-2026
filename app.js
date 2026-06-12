@@ -674,19 +674,18 @@ function updateKnockoutOptions() {
 function startKnockouts() {
     const t = translations[currentLang];
     
-    // 1. CHECK: Are there group results?
+    // 1. Safety Check
     let filled = false;
     for (const group in allGroups) {
         const container = document.getElementById(`standings-${group}`);
         if (container && container.innerHTML !== "") filled = true;
     }
-    
-    if (!filled) {
-        alert(t.alertFillGroup);
-        return;
-    }
+    if (!filled) { alert(t.alertFillGroup); return; }
 
-    // 2. CALCULATE: Find 1st, 2nd, and 3rd places
+    // 2. Switch
+    switchScreen('group-stage-screen', 'knockout-screen');
+
+    // 3. Logic: Find 1st, 2nd, 3rd places
     let firstPlaces = [], secondPlaces = [], thirdPlaces = [];
     const groupLetters = ['A','B','C','D','E','F','G','H','I','J','K','L'];
     
@@ -705,52 +704,33 @@ function startKnockouts() {
         });
     }
 
-    // 3. FIND BEST THIRDS
-    let bestThirds = thirdPlaces.sort((a, b) => { 
-        if(b.pts !== a.pts) return b.pts - a.pts; 
-        return b.gd - a.gd; 
-    }).slice(0, 8);
-
+    let bestThirds = thirdPlaces.sort((a, b) => { if(b.pts !== a.pts) return b.pts - a.pts; return b.gd - a.gd; }).slice(0, 8);
     const comboKey = [...bestThirds].map(t => t.group).sort().join('');
     const tableResult = fifa3rdPlaceTable[comboKey]; 
-
     let thirdsMatched = {};
     for (const hostGroup in tableResult) {
-        const thirdLetter = tableResult[hostGroup];
-        thirdsMatched[hostGroup] = bestThirds.find(t => t.group === thirdLetter);
+        thirdsMatched[hostGroup] = bestThirds.find(t => t.group === tableResult[hostGroup]);
     }
-
     const get1st = (g) => firstPlaces.find(t => t.group === g).name;
     const get2nd = (g) => secondPlaces.find(t => t.group === g).name;
     const get3rd = (g) => thirdsMatched[g] ? thirdsMatched[g].name : t.koUnknown;
 
-    // 4. DEFINE matchUps (THIS MUST HAPPEN BEFORE RENDERING!)
     const matchUps = [
-        [ get2nd('A'), get2nd('B') ],       // Match 1
-        [ get1st('E'), get3rd('E') ],       // Match 2
-        [ get1st('F'), get2nd('C') ],       // Match 3
-        [ get1st('C'), get2nd('F') ],       // Match 4
-        [ get1st('I'), get3rd('I') ],       // Match 5
-        [ get2nd('E'), get2nd('I') ],       // Match 6
-        [ get1st('A'), get3rd('A') ],       // Match 7
-        [ get1st('L'), get3rd('L') ],       // Match 8
-        [ get1st('D'), get3rd('D') ],       // Match 9
-        [ get1st('G'), get3rd('G') ],       // Match 10
-        [ get2nd('K'), get2nd('L') ],       // Match 11
-        [ get1st('H'), get2nd('J') ],       // Match 12
-        [ get1st('B'), get3rd('B') ],       // Match 13
-        [ get1st('J'), get2nd('H') ],       // Match 14
-        [ get1st('K'), get3rd('K') ],       // Match 15
-        [ get2nd('D'), get2nd('G') ]        // Match 16
+        [ get2nd('A'), get2nd('B') ], [ get1st('E'), get3rd('E') ], [ get1st('F'), get2nd('C') ], [ get1st('C'), get2nd('F') ],
+        [ get1st('I'), get3rd('I') ], [ get2nd('E'), get2nd('I') ], [ get1st('A'), get3rd('A') ], [ get1st('L'), get3rd('L') ],
+        [ get1st('D'), get3rd('D') ], [ get1st('G'), get3rd('G') ], [ get2nd('K'), get2nd('L') ], [ get1st('H'), get2nd('J') ],
+        [ get1st('B'), get3rd('B') ], [ get1st('J'), get2nd('H') ], [ get1st('K'), get3rd('K') ], [ get2nd('D'), get2nd('G') ]
     ];
 
-    // 5. SWITCH SCREEN & RENDER
-    switchScreen('group-stage-screen', 'knockout-screen');
+    // 4. TRIGGER: This is the important change
     renderKnockoutBracket(matchUps); 
-    if (typeof updateVisualBracket === "function") updateVisualBracket();
-    if (typeof renderVisualBracket === "function") renderVisualBracket(matchUps);
     
-    console.log("➡️ Knockout phase started and screens switched.");
+    // Add a tiny delay before updating the visual bracket to ensure HTML exists
+    setTimeout(() => {
+        if (typeof renderVisualBracket === "function") renderVisualBracket(matchUps);
+        if (typeof updateVisualBracket === "function") updateVisualBracket();
+        console.log("➡️ Knockout phase fully rendered.");
+    }, 100); 
 }
 
 function renderKnockoutBracket(matchUps) {
