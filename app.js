@@ -178,7 +178,9 @@ const translations = {
   }
 };
 
-let currentLang = 'nl';
+// Global initialization fallback for all pages
+let currentLang = localStorage.getItem('poule_lang') || 'nl';
+setupLanguageData();
 let savedDatabaseData = {};
 
 // ---> PLAK HIER JOUW GOOGLE SCRIPT LINK TUSSEN DE AANHALINGSTEKENS <---
@@ -271,95 +273,84 @@ function setupLanguageData() {
 // 3. INITIALISATIE & NAVIGATIE
 // ==========================================
 function initApp(lang) {
-    currentLang = lang;
-    setupLanguageData(); 
-    applyTranslations();
-    const savedName = localStorage.getItem('poule_user_name');
-    document.getElementById('language-screen').classList.remove('active');
-    
-    if (savedName) showMainApp(savedName);
-    else document.getElementById('name-screen').classList.add('active');
+  currentLang = lang;
+  localStorage.setItem('poule_lang', lang);
+  setupLanguageData();
+  applyTranslations();
+  
+  // Safety checks: Only handle screen classes if the elements actually exist on this page
+  const langScreen = document.getElementById('language-screen');
+  if (langScreen) langScreen.classList.remove('active');  
+
+  const nameScreen = document.getElementById('name-screen');
+  const savedName = localStorage.getItem('poule_user_name');
+  
+  if (nameScreen) {
+    if (savedName) {
+      // If on predict.html and already logged in, jump straight to group stage
+      const groupStage = document.getElementById('group-stage-screen');
+      if (groupStage) groupStage.classList.add('active');
+      loadPredictions();
+    } else {
+      nameScreen.classList.add('active');
+    }
+  } else {
+    // If we are on predict.html without a login box, just load data directly
+    const groupStage = document.getElementById('group-stage-screen');
+    if (groupStage) {
+      groupStage.classList.add('active');
+      loadPredictions();
+    }
+  }
 }
 
 function applyTranslations() {
-    const t = translations[currentLang];
-    if (document.getElementById('ui-title')) document.getElementById('ui-title').innerText = t.title;
-    if (document.getElementById('ui-welcome')) document.getElementById('ui-welcome').innerText = t.welcome;
-    if (document.getElementById('ui-instructions')) document.getElementById('ui-instructions').innerText = t.instructions;
-    
-    // Toegevoegd voor het naam scherm
-    if (document.getElementById('ui-name-title')) document.getElementById('ui-name-title').innerText = t.nameTitle;
-    if (document.getElementById('name-input')) document.getElementById('name-input').placeholder = t.namePlaceholder;
-    if (document.getElementById('ui-btn-start')) document.getElementById('ui-btn-start').innerText = t.btnStart;
+  const t = translations[currentLang];
+  if (!t) return;
 
-    if (document.getElementById('ui-ko-title')) document.getElementById('ui-ko-title').innerText = t.koTitle;
-    if (document.getElementById('ui-ko-desc')) document.getElementById('ui-ko-desc').innerText = t.koDesc;
-    if (document.getElementById('ui-bonus-title')) document.getElementById('ui-bonus-title').innerText = t.bonusTitle;
-    if (document.getElementById('ui-bonus-desc')) document.getElementById('ui-bonus-desc').innerText = t.bonusDesc;
+  // Added safety checks (if) to prevent crashes on today.html and standings.html
+  const uiTitle = document.getElementById('ui-title');
+  if (uiTitle) uiTitle.innerText = t.title;
 
-    if (document.getElementById('groups-container').innerHTML !== '') {
-        renderMatches();
-        if (document.getElementById('knockout-screen').classList.contains('active')) startKnockouts();
-        if (document.getElementById('bonus-screen').classList.contains('active')) renderBonus();
-    }
+  const uiWelcome = document.getElementById('ui-welcome');
+  if (uiWelcome) uiWelcome.innerText = t.welcome;
+
+  const uiInstructions = document.getElementById('ui-instructions');
+  if (uiInstructions) uiInstructions.innerText = t.instructions;
+
+  const uiNameTitle = document.getElementById('ui-name-title');
+  if (uiNameTitle) uiNameTitle.innerText = t.nameTitle;
+
+  const nameInput = document.getElementById('name-input');
+  if (nameInput) nameInput.placeholder = t.namePlaceholder;
+
+  const startBtn = document.getElementById('start-btn');
+  if (startBtn) startBtn.innerText = t.btnStart;
 }
 
 function submitName() {
-    let inputName = document.getElementById('name-input').value;
-    if (inputName.length < 2) return alert(translations[currentLang].alertName);
-    const cleanName = inputName.trim().toLowerCase();
-    localStorage.setItem('poule_user_name', cleanName);
-    showMainApp(cleanName);
-}
-
-// Update your existing showMainApp function
-function showMainApp(savedName) {
+  const nameInput = document.getElementById('name-input');
+  if (!nameInput) return;
+  
+  const name = nameInput.value.trim();
+  if (!name) {
+    alert(translations[currentLang].alertName);
+    return;
+  }
+  localStorage.setItem('poule_user_name', name);
+  
+  // Safely reveal the prediction screen if it exists
   const nameScreen = document.getElementById('name-screen');
   if (nameScreen) nameScreen.classList.remove('active');
   
-  // Show the main navigation menu
-  const mainNav = document.getElementById('main-nav-menu');
-  if (mainNav) mainNav.style.display = 'flex';
+  const groupScreen = document.getElementById('group-stage-screen');
+  if (groupScreen) groupScreen.classList.add('active');
   
-  // Apply translations to the navigation buttons
-  const t = translations[currentLang];
-  if (document.getElementById('btn-menu-today')) document.getElementById('btn-menu-today').innerText = t.menuToday;
-  if (document.getElementById('btn-menu-standings')) document.getElementById('btn-menu-standings').innerText = t.menuStandings;
-  if (document.getElementById('btn-menu-predictions')) document.getElementById('btn-menu-predictions').innerText = t.menuPredictions;
-  
-  // Default to showing today's matches when logging in
-  switchTab('today');
+  loadPredictions();
 }
 
-// Add this function to handle switching tabs smoothly
-function switchTab(tabName) {
-  // Hide all tab screens
-  document.querySelectorAll('.tab-screen').forEach(el => el.style.display = 'none');
-  
-  // Remove active class from prediction screens if they are visible
-  const groupScreen = document.getElementById('group-stage-screen');
-  if (groupScreen) groupScreen.classList.remove('active');
-  
-  const t = translations[currentLang];
-  
-  if (tabName === 'today') {
-    document.getElementById('screen-today').style.display = 'block';
-    if (document.getElementById('ui-today-title')) {
-      document.getElementById('ui-today-title').innerText = t.todayTitle;
-    }
-    renderTodayMatches();
-  } else if (tabName === 'standings') {
-    document.getElementById('screen-standings').style.display = 'block';
-    if (document.getElementById('ui-standings-title')) {
-      document.getElementById('ui-standings-title').innerText = t.menuStandings;
-    }
-    renderLeaderboard();
-  } else if (tabName === 'predictions') {
-    document.getElementById('screen-predictions').style.display = 'block';
-    if (groupScreen) groupScreen.classList.add('active');
-    loadPredictions();
-  }
-}
+
+
 
 function switchScreen(hideId, showId) {
     document.getElementById(hideId).classList.remove('active');
