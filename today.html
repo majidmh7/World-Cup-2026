@@ -1,39 +1,28 @@
-<!DOCTYPE html>
-<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Matches</title>
   <link rel="stylesheet" href="style.css">
-  <style>
-    .nav-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-    .date-banner { font-size: 18px; font-weight: bold; margin: 0; background: #eee; padding: 8px 15px; border-radius: 20px; }
-    .btn-nav { padding: 8px 15px; font-weight: bold; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
-    .match-card { background: white; border: 1px solid #ddd; padding: 15px; margin-bottom: 20px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-    .team-header { font-size: 18px; font-weight: bold; margin: 10px 0; }
-    .pred-list { background: #f9f9f9; padding: 12px; border-radius: 8px; margin-top: 15px; }
-    .pred-item { padding: 6px 0; border-bottom: 1px dashed #e0e0e0; font-size: 14px; }
-    .pred-item:last-child { border-bottom: none; }
-  </style>
 </head>
-<body style="background: #f5f7fb; margin: 0; padding: 15px;">
-  <div style="max-width: 600px; margin: 0 auto;">
+<body style="background: #f5f7fb; margin: 0; padding: 12px; box-sizing: border-box; width: 100%;">
+  <div style="width: 100%; max-width: 100%; box-sizing: border-box; margin: 0 auto;">
     
-    <div class="nav-container">
-      <a href="index.html" style="text-decoration: none; font-weight: bold; color: #007bff; font-size: 16px;">⬅️ Menu</a>
-      <div class="date-banner" id="current-date-display">...</div>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; width: 100%; box-sizing: border-box;">
+      <a href="index.html" style="text-decoration: none; font-weight: bold; color: #007bff; font-size: 16px; padding: 5px 10px; background:#fff; border:1px solid #ddd; border-radius:6px;">⬅️ Menu</a>
+      <div id="current-date-display" style="font-size: 16px; font-weight: bold; background: #e9ecef; padding: 6px 14px; border-radius: 20px; font-family: sans-serif;">...</div>
     </div>
 
-    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-      <button class="btn-nav" style="flex: 1;" onclick="changeMatchDay(-1)">◀ Previous Day</button>
-      <button class="btn-nav" style="flex: 1;" onclick="changeMatchDay(1)">Next Day ▶</button>
+    <div style="display: flex; gap: 10px; margin-bottom: 20px; width: 100%; box-sizing: border-box;">
+      <button onclick="changeMatchDay(-1)" style="flex: 1; padding: 12px; font-size: 14px; font-weight: bold; background: #007bff; color: white; border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">◀ Previous Day</button>
+      <button onclick="changeMatchDay(1)" style="flex: 1; padding: 12px; font-size: 14px; font-weight: bold; background: #007bff; color: white; border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">Next Day ▶</button>
     </div>
     
-    <div id="container-today-matches"></div>
+    <div id="container-today-matches" style="width: 100%; box-sizing: border-box; display: block; clear: both;"></div>
   </div>
 
   <script src="app.js"></script>
   <script>
+    // Initialize date tracking using standard system time tracking
     let activeDate = new Date();
 
     window.addEventListener('DOMContentLoaded', () => {
@@ -42,7 +31,6 @@
     });
 
     function renderView() {
-      // Format as standard YYYY-MM-DD for the fetch filter
       const yyyy = activeDate.getFullYear();
       const mm = String(activeDate.getMonth() + 1).padStart(2, '0');
       const dd = String(activeDate.getDate()).padStart(2, '0');
@@ -58,4 +46,3 @@
     }
   </script>
 </body>
-</html>
