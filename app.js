@@ -573,10 +573,108 @@ function updateKnockoutOptions() {
 //         });
 //     }
 
+// function startKnockouts() {
+//     const t = translations[currentLang];
+    
+//     // 1. CHECK: Are there group results? (Your new safety logic)
+//     let filled = false;
+//     for (const group in allGroups) {
+//         const container = document.getElementById(`standings-${group}`);
+//         if (container && container.innerHTML !== "") filled = true;
+//     }
+    
+//     if (!filled) {
+//         alert(t.alertFillGroup);
+//         return; // Don't switch screens
+//     }
+
+//     // 2. SWITCH SCREEN (Safe version)
+//     switchScreen('group-stage-screen', 'knockout-screen');
+
+//     // 3. CALCULATE: Find 1st and 2nd places (Your existing code)
+//     let firstPlaces = [], secondPlaces = [], thirdPlaces = [];
+//     const groupLetters = ['A','B','C','D','E','F','G','H','I','J','K','L'];
+    
+//     for (const group of groupLetters) {
+//         const table = document.querySelector(`#standings-${group} tbody`);
+//         if (!table) continue;
+//         const rows = table.querySelectorAll('tr');
+//         rows.forEach((row, index) => {
+//             const name = row.querySelectorAll('td')[0].innerText.substring(3).trim();
+//             const pts = parseInt(row.querySelectorAll('td')[5].innerText);
+//             const gd = parseInt(row.querySelectorAll('td')[4].innerText);
+//             const teamObj = { group, name, pts, gd };
+//             if (index === 0) firstPlaces.push(teamObj);
+//             else if (index === 1) secondPlaces.push(teamObj);
+//             else if (index === 2) thirdPlaces.push(teamObj);
+//         });
+//     }
+
+//     // [Keep the rest of your existing logic here: bestThirds, comboKey, matchUps, etc.]
+//     // ...
+//     // ...
+    
+//     // 4. TRIGGER UPDATES
+//     renderKnockoutBracket(matchUps); 
+//     if (typeof updateVisualBracket === "function") updateVisualBracket();
+//     console.log("➡️ Knockout phase started and screens switched.");
+
+
+//     // 1. Vind de 8 beste nummers 3
+//     let bestThirds = thirdPlaces.sort((a, b) => { 
+//         if(b.pts !== a.pts) return b.pts - a.pts; 
+//         return b.gd - a.gd; 
+//     }).slice(0, 8);
+
+//     // 2. TABEL LOOKUP: Zoek de exacte combinatie op in de 495-rijen tabel
+//     // Sorteer de letters eerst alfabetisch (bijv. "ABCEFGHI")
+//     const comboKey = [...bestThirds].map(t => t.group).sort().join('');
+    
+//     // Haal het exacte FIFA antwoord uit de tabel
+//     const tableResult = fifa3rdPlaceTable[comboKey]; 
+
+//     // Koppel het antwoord aan de teamnamen
+//     let thirdsMatched = {};
+//     for (const hostGroup in tableResult) {
+//         const thirdLetter = tableResult[hostGroup];
+//         thirdsMatched[hostGroup] = bestThirds.find(t => t.group === thirdLetter);
+//     }
+
+//     // Hulpfunctie om makkelijk namen op te halen
+//     const get1st = (g) => firstPlaces.find(t => t.group === g).name;
+//     const get2nd = (g) => secondPlaces.find(t => t.group === g).name;
+//     const get3rd = (g) => thirdsMatched[g] ? thirdsMatched[g].name : t.koUnknown;
+
+//     // 3. HET OFFICIËLE 2026 ROUND OF 32 SCHEMA
+//     const matchUps = [
+//         [ get2nd('A'), get2nd('B') ],       // Match 1
+//         [ get1st('E'), get3rd('E') ],       // Match 2
+//         [ get1st('F'), get2nd('C') ],       // Match 3
+//         [ get1st('C'), get2nd('F') ],       // Match 4
+//         [ get1st('I'), get3rd('I') ],       // Match 5
+//         [ get2nd('E'), get2nd('I') ],       // Match 6
+//         [ get1st('A'), get3rd('A') ],       // Match 7
+//         [ get1st('L'), get3rd('L') ],       // Match 8
+//         [ get1st('D'), get3rd('D') ],       // Match 9
+//         [ get1st('G'), get3rd('G') ],       // Match 10
+//         [ get2nd('K'), get2nd('L') ],       // Match 11
+//         [ get1st('H'), get2nd('J') ],       // Match 12
+//         [ get1st('B'), get3rd('B') ],       // Match 13
+//         [ get1st('J'), get2nd('H') ],       // Match 14
+//         [ get1st('K'), get3rd('K') ],       // Match 15
+//         [ get2nd('D'), get2nd('G') ]        // Match 16
+//     ];
+
+//     switchScreen('app-screen', 'knockout-screen');
+//     if (typeof renderVisualBracket === "function") renderVisualBracket(matchUps);
+//     renderKnockoutBracket(matchUps);
+//     if (typeof updateVisualBracket === "function") updateVisualBracket();
+// }
+
 function startKnockouts() {
     const t = translations[currentLang];
     
-    // 1. CHECK: Are there group results? (Your new safety logic)
+    // 1. CHECK: Are there group results?
     let filled = false;
     for (const group in allGroups) {
         const container = document.getElementById(`standings-${group}`);
@@ -585,13 +683,10 @@ function startKnockouts() {
     
     if (!filled) {
         alert(t.alertFillGroup);
-        return; // Don't switch screens
+        return;
     }
 
-    // 2. SWITCH SCREEN (Safe version)
-    switchScreen('group-stage-screen', 'knockout-screen');
-
-    // 3. CALCULATE: Find 1st and 2nd places (Your existing code)
+    // 2. CALCULATE: Find 1st, 2nd, and 3rd places
     let firstPlaces = [], secondPlaces = [], thirdPlaces = [];
     const groupLetters = ['A','B','C','D','E','F','G','H','I','J','K','L'];
     
@@ -610,42 +705,26 @@ function startKnockouts() {
         });
     }
 
-    // [Keep the rest of your existing logic here: bestThirds, comboKey, matchUps, etc.]
-    // ...
-    // ...
-    
-    // 4. TRIGGER UPDATES
-    renderKnockoutBracket(matchUps); 
-    if (typeof updateVisualBracket === "function") updateVisualBracket();
-    console.log("➡️ Knockout phase started and screens switched.");
-
-
-    // 1. Vind de 8 beste nummers 3
+    // 3. FIND BEST THIRDS
     let bestThirds = thirdPlaces.sort((a, b) => { 
         if(b.pts !== a.pts) return b.pts - a.pts; 
         return b.gd - a.gd; 
     }).slice(0, 8);
 
-    // 2. TABEL LOOKUP: Zoek de exacte combinatie op in de 495-rijen tabel
-    // Sorteer de letters eerst alfabetisch (bijv. "ABCEFGHI")
     const comboKey = [...bestThirds].map(t => t.group).sort().join('');
-    
-    // Haal het exacte FIFA antwoord uit de tabel
     const tableResult = fifa3rdPlaceTable[comboKey]; 
 
-    // Koppel het antwoord aan de teamnamen
     let thirdsMatched = {};
     for (const hostGroup in tableResult) {
         const thirdLetter = tableResult[hostGroup];
         thirdsMatched[hostGroup] = bestThirds.find(t => t.group === thirdLetter);
     }
 
-    // Hulpfunctie om makkelijk namen op te halen
     const get1st = (g) => firstPlaces.find(t => t.group === g).name;
     const get2nd = (g) => secondPlaces.find(t => t.group === g).name;
     const get3rd = (g) => thirdsMatched[g] ? thirdsMatched[g].name : t.koUnknown;
 
-    // 3. HET OFFICIËLE 2026 ROUND OF 32 SCHEMA
+    // 4. DEFINE matchUps (THIS MUST HAPPEN BEFORE RENDERING!)
     const matchUps = [
         [ get2nd('A'), get2nd('B') ],       // Match 1
         [ get1st('E'), get3rd('E') ],       // Match 2
@@ -665,10 +744,13 @@ function startKnockouts() {
         [ get2nd('D'), get2nd('G') ]        // Match 16
     ];
 
-    switchScreen('app-screen', 'knockout-screen');
-    if (typeof renderVisualBracket === "function") renderVisualBracket(matchUps);
-    renderKnockoutBracket(matchUps);
+    // 5. SWITCH SCREEN & RENDER
+    switchScreen('group-stage-screen', 'knockout-screen');
+    renderKnockoutBracket(matchUps); 
     if (typeof updateVisualBracket === "function") updateVisualBracket();
+    if (typeof renderVisualBracket === "function") renderVisualBracket(matchUps);
+    
+    console.log("➡️ Knockout phase started and screens switched.");
 }
 
 function renderKnockoutBracket(matchUps) {
