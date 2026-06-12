@@ -553,14 +553,51 @@ function updateKnockoutOptions() {
     updateVisualBracket(); // Zorgt dat de visuele bracket bovenaan ook update
 }
 
+// function startKnockouts() {
+//     const t = translations[currentLang];
+//     let firstPlaces = [], secondPlaces = [], thirdPlaces = [];
+//     const groupLetters = ['A','B','C','D','E','F','G','H','I','J','K','L'];
+    
+//     for (const group of groupLetters) {
+//         const table = document.querySelector(`#standings-${group} tbody`);
+//         if (!table) return alert(t.alertFillGroup);
+//         const rows = table.querySelectorAll('tr');
+//         rows.forEach((row, index) => {
+//             const name = row.querySelectorAll('td')[0].innerText.substring(3).trim();
+//             const pts = parseInt(row.querySelectorAll('td')[5].innerText);
+//             const gd = parseInt(row.querySelectorAll('td')[4].innerText);
+//             const teamObj = { group, name, pts, gd };
+//             if (index === 0) firstPlaces.push(teamObj);
+//             else if (index === 1) secondPlaces.push(teamObj);
+//             else if (index === 2) thirdPlaces.push(teamObj);
+//         });
+//     }
+
 function startKnockouts() {
     const t = translations[currentLang];
+    
+    // 1. CHECK: Are there group results? (Your new safety logic)
+    let filled = false;
+    for (const group in allGroups) {
+        const container = document.getElementById(`standings-${group}`);
+        if (container && container.innerHTML !== "") filled = true;
+    }
+    
+    if (!filled) {
+        alert(t.alertFillGroup);
+        return; // Don't switch screens
+    }
+
+    // 2. SWITCH SCREEN (Safe version)
+    switchScreen('group-stage-screen', 'knockout-screen');
+
+    // 3. CALCULATE: Find 1st and 2nd places (Your existing code)
     let firstPlaces = [], secondPlaces = [], thirdPlaces = [];
     const groupLetters = ['A','B','C','D','E','F','G','H','I','J','K','L'];
     
     for (const group of groupLetters) {
         const table = document.querySelector(`#standings-${group} tbody`);
-        if (!table) return alert(t.alertFillGroup);
+        if (!table) continue;
         const rows = table.querySelectorAll('tr');
         rows.forEach((row, index) => {
             const name = row.querySelectorAll('td')[0].innerText.substring(3).trim();
@@ -572,6 +609,16 @@ function startKnockouts() {
             else if (index === 2) thirdPlaces.push(teamObj);
         });
     }
+
+    // [Keep the rest of your existing logic here: bestThirds, comboKey, matchUps, etc.]
+    // ...
+    // ...
+    
+    // 4. TRIGGER UPDATES
+    renderKnockoutBracket(matchUps); 
+    if (typeof updateVisualBracket === "function") updateVisualBracket();
+    console.log("➡️ Knockout phase started and screens switched.");
+
 
     // 1. Vind de 8 beste nummers 3
     let bestThirds = thirdPlaces.sort((a, b) => { 
