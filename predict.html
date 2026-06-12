@@ -87,7 +87,9 @@
         langScreen.classList.remove('active');
         langScreen.style.display = 'none';
       }
-    </script>
+    }); // <-- This closing tag was missing and caused the crash!
+  </script>
+</body>
 </body>
 </body>
 </html>
