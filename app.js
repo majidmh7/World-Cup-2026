@@ -335,10 +335,9 @@ function initApp(lang) {
 
 
 function applyTranslations() {
-  const t = translations[currentLang];
+  const t = translations[currentLang] || translations['nl'];
   if (!t) return;
 
-  // Added safety checks (if) to prevent crashes on today.html and standings.html
   const uiTitle = document.getElementById('ui-title');
   if (uiTitle) uiTitle.innerText = t.title;
 
@@ -354,7 +353,8 @@ function applyTranslations() {
   const nameInput = document.getElementById('name-input');
   if (nameInput) nameInput.placeholder = t.namePlaceholder;
 
-  const startBtn = document.getElementById('start-btn');
+  // FIXED: Looks for either ID to ensure the translation applies
+  const startBtn = document.getElementById('ui-btn-start') || document.getElementById('start-btn');
   if (startBtn) startBtn.innerText = t.btnStart;
 }
 
@@ -367,18 +367,27 @@ function submitName() {
     alert(translations[currentLang].alertName);
     return;
   }
+  
+  // Save the name to browser memory
   localStorage.setItem('poule_user_name', name);
   
-  // Safely reveal the prediction screen if it exists
+  // FIXED: Force the name screen to hide completely
   const nameScreen = document.getElementById('name-screen');
-  if (nameScreen) nameScreen.classList.remove('active');
+  if (nameScreen) {
+    nameScreen.classList.remove('active');
+    nameScreen.style.display = 'none'; 
+  }
   
+  // FIXED: Force the prediction form to appear
   const groupScreen = document.getElementById('group-stage-screen');
-  if (groupScreen) groupScreen.classList.add('active');
+  if (groupScreen) {
+    groupScreen.classList.add('active');
+    groupScreen.style.display = 'block'; 
+  }
   
+  // Load any existing data from Google Sheets
   loadPredictions();
 }
-
 
 
 
