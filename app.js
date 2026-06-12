@@ -982,65 +982,117 @@ function getLocalTeamName(englishName) {
 }
 
 // Cross-references team combinations with matchOrder index to determine prediction IDs (e.g., "A1")
+// function findMatchPredictionsKey(t1, t2) {
+//   const clean = (name) => name.toLowerCase().replace(/[^a-z]/g, '');
+//   for (const key in rawGroups) {
+//     const teams = rawGroups[key].map(t => clean(t[0].nl));
+//     const matchOrder = [ [0,1], [2,3], [0,2], [3,1], [3,0], [1,2] ];
+    
+//     for (let i = 0; i < matchOrder.length; i++) {
+//       const homeIdx = matchOrder[i][0];
+//       const awayIdx = matchOrder[i][1];
+//       if ((teams[homeIdx] === clean(t1) || teams[homeIdx] === clean(getLocalTeamName(t1))) && 
+//           (teams[awayIdx] === clean(t2) || teams[awayIdx] === clean(getLocalTeamName(t2)))) {
+//         return `${key}${i + 1}`;
+//       }
+//     }
+//   }
+//   return '';
+// }
 function findMatchPredictionsKey(t1, t2) {
-  const clean = (name) => name.toLowerCase().replace(/[^a-z]/g, '');
-  for (const key in rawGroups) {
-    const teams = rawGroups[key].map(t => clean(t[0].nl));
+  const normalize = (name) => {
+    if (!name) return "";
+    const clean = name.toLowerCase().trim();
+    if (clean.includes("unite") || clean.includes("usa") || clean.includes("verenigde")) return "united states";
+    if (clean.includes("korea") || clean.includes("zuid-korea")) return "south korea";
+    if (clean.includes("africa") || clean.includes("zuid-afrika")) return "south africa";
+    if (clean.includes("czech") || clean.includes("tsjechi")) return "czech republic";
+    if (clean.includes("bosnia") || clean.includes("bosni")) return "bosnia & herzegovina";
+    if (clean.includes("nether") || clean.includes("nederland")) return "netherlands";
+    return clean;
+  };
+
+  const cleanT1 = normalize(t1);
+  const cleanT2 = normalize(t2);
+
+  const referenceGroups = {
+    A: ["mexico", "south africa", "south korea", "czech republic"],
+    B: ["canada", "bosnia & herzegovina", "qatar", "switzerland"],
+    C: ["brazil", "morocco", "haiti", "scotland"],
+    D: ["united states", "paraguay", "australia", "turkey"],
+    E: ["germany", "curaçao", "ivory coast", "ecuador"],
+    F: ["netherlands", "japan", "sweden", "tunisia"],
+    G: ["belgium", "egypt", "iran", "new zealand"],
+    H: ["spain", "cape verde", "saudi arabia", "uruguay"],
+    I: ["france", "senegal", "iraq", "norway"],
+    J: ["argentina", "algeria", "austria", "jordan"],
+    K: ["portugal", "dr congo", "uzbekistan", "colombia"],
+    L: ["england", "croatia", "ghana", "panama"]
+  };
+
+  for (const groupKey in referenceGroups) {
+    const list = referenceGroups[groupKey];
     const matchOrder = [ [0,1], [2,3], [0,2], [3,1], [3,0], [1,2] ];
     
     for (let i = 0; i < matchOrder.length; i++) {
-      const homeIdx = matchOrder[i][0];
-      const awayIdx = matchOrder[i][1];
-      if ((teams[homeIdx] === clean(t1) || teams[homeIdx] === clean(getLocalTeamName(t1))) && 
-          (teams[awayIdx] === clean(t2) || teams[awayIdx] === clean(getLocalTeamName(t2)))) {
-        return `${key}${i + 1}`;
+      const hIdx = matchOrder[i][0];
+      const aIdx = matchOrder[i][1];
+      if ((list[hIdx] === cleanT1 && list[aIdx] === cleanT2) || 
+          (list[hIdx] === cleanT2 && list[aIdx] === cleanT1)) {
+        return `${groupKey}${i + 1}`;
       }
     }
   }
   return '';
 }
 
-async function renderTodayMatches() {
+async function renderTodayMatches(targetDateString) {
   const container = document.getElementById('container-today-matches');
-  const t = translations[currentLang];
-  container.innerHTML = `<p>${t.loading}</p>`;
+  const t = translations[currentLang] || translations['nl'];
+  container.innerHTML = `<p style="text-align:center; color:#666;">${t.loading}</p>`;
   
   const data = await fetchWorldCupData();
-  // Formats client system time into YYYY-MM-DD
-  const todayStr = new Date().toLocaleDateString('en-CA'); 
-  
   if (!data || !data.matches) {
-    container.innerHTML = `<p>${t.noMatches}</p>`;
+    container.innerHTML = `<p style="text-align:center; padding:20px;">${t.noMatches}</p>`;
     return;
   }
   
-  const todaysMatches = data.matches.filter(m => m.date === todayStr);
-  if (todaysMatches.length === 0) {
-    container.innerHTML = `<p>${t.noMatches} (${todayStr})</p>`;
+  const selectedMatches = data.matches.filter(m => m.date === targetDateString);
+  if (selectedMatches.length === 0) {
+    container.innerHTML = `<p style="text-align:center; padding:20px; color:#777;">${t.noMatches}</p>`;
     return;
   }
   
   const allParticipants = await fetchAllDatabasePredictions();
   let html = '';
   
-  todaysMatches.forEach(match => {
+  selectedMatches.forEach(match => {
     const isFinished = match.score && match.score.ft;
     const actH = isFinished ? match.score.ft[0] : null;
     const actA = isFinished ? match.score.ft[1] : null;
     
     html += `
-      <div class="match-card" style="border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 8px; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-        <h3 style="margin-top:0;">${t.matchday} ${match.round.replace('Matchday ', '')} ${match.group ? `- ${match.group}` : ''}</h3>
-        <p style="font-size: 1.2em; font-weight: bold;">${getLocalTeamName(match.team1)} vs ${getLocalTeamName(match.team2)}</p>
-        <p style="color: #666; font-size: 0.9em;">⏰ ${match.time} @ ${match.ground}</p>
-        ${isFinished ? `<p style="color: #28a745; font-weight: bold; font-size: 1.1em;">Final Score: ${actH} - ${actA}</p>` : '<p style="color: #fd7e14; font-weight: bold;">Scheduled / In Progress</p>'}
-        
-        <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
-        <h4 style="margin-bottom: 10px;">📋 ${t.predBy}:</h4>
-        <ul style="list-style: none; padding-left: 0; margin: 0;">
+      <div class="match-card">
+        <div style="font-size:12px; color:#888; font-weight:bold; text-transform:uppercase;">
+          ${t.matchday} ${match.round.replace('Matchday ', '')} ${match.group ? `• ${match.group}` : ''}
+        </div>
+        <div class="team-header">${getLocalTeamName(match.team1)} vs ${getLocalTeamName(match.team2)}</div>
+        <div style="font-size:13px; color:#555; margin-bottom:10px;">⏰ ${match.time} @ ${match.ground}</div>
+    `;
+    
+    if (isFinished) {
+      html += `<div style="background:#e2f0d9; color:#385723; padding:8px; border-radius:6px; font-weight:bold; margin-bottom:10px;">Uitslag: ${actH} - ${actA}</div>`;
+    } else {
+      html += `<div style="background:#fff3cd; color:#856404; padding:8px; border-radius:6px; font-weight:bold; margin-bottom:10px;">Scheduled / In Progress</div>`;
+    }
+    
+    html += `
+      <div class="pred-list">
+        <div style="font-weight:bold; font-size:13px; color:#444; margin-bottom:6px;">📋 ${t.predBy}:</div>
     `;
     
     const matchKey = findMatchPredictionsKey(match.team1, match.team2);
+    let totalPredsCount = 0;
     
     for (const pName in allParticipants) {
       const userPreds = allParticipants[pName];
@@ -1048,17 +1100,22 @@ async function renderTodayMatches() {
       const predA = userPreds[`${matchKey}_away`];
       
       if (predH !== undefined && predA !== undefined) {
-        let calculations = '';
+        totalPredsCount++;
+        let calculationText = '';
         if (isFinished) {
           const points = calculateGroupPoints(predH, predA, actH, actA);
           const feedback = points === 5 ? t.exactScore : (points === 2 ? t.outcomeOnly : t.missed);
-          calculations = ` ➡️ <span style="color:#007bff; font-weight:bold;">(${points} pts - ${feedback})</span>`;
+          calculationText = ` ➡️ <span style="color:#007bff; font-weight:bold;">(${points} pts)</span>`;
         }
-        html += `<li style="padding: 4px 0; border-bottom: 1px dashed #f1f1f1;"><strong>${pName}</strong>: ${predH} - ${predA}${calculations}</li>`;
+        html += `<div class="pred-item"><strong>${pName}</strong>: ${predH} - ${predA}${calculationText}</div>`;
       }
     }
     
-    html += `</ul></div>`;
+    if (totalPredsCount === 0) {
+      html += `<div style="font-size:13px; color:#999; italic;">Geen voorspellingen gevonden.</div>`;
+    }
+    
+    html += `</div></div>`;
   });
   
   container.innerHTML = html;
