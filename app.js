@@ -404,9 +404,23 @@ function submitName() {
 
 
 function switchScreen(hideId, showId) {
-    document.getElementById(hideId).classList.remove('active');
-    document.getElementById(showId).classList.add('active');
-    window.scrollTo(0,0);
+  const hideEl = document.getElementById(hideId);
+  const showEl = document.getElementById(showId);
+
+  // Safety check: Only perform operations if the elements actually exist
+  if (hideEl) {
+    hideEl.classList.remove('active');
+    hideEl.style.display = 'none';
+  } else {
+    console.warn("⚠️ switchScreen: Element to hide not found:", hideId);
+  }
+
+  if (showEl) {
+    showEl.classList.add('active');
+    showEl.style.display = 'block';
+  } else {
+    console.warn("⚠️ switchScreen: Element to show not found:", showId);
+  }
 }
 
 // ==========================================
