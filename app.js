@@ -1,11 +1,51 @@
 // ==========================================
 // 1. HET GROTE WOORDENBOEK (VERTALINGEN)
 // ==========================================
+// ==========================================
+// 1. HET GROTE WOORDENBOEK (VERTALINGEN)
+// ==========================================
 const translations = {
-    en: {
+  en: {
     title: "World Cup 2026 Pool",
     welcome: "Welcome to the Family Pool!",
     instructions: "Fill in the results below.",
+    nameTitle: "Who are you?",
+    namePlaceholder: "Your name...",
+    btnStart: "Start",
+    koTitle: "Knock-out Phase",
+    koDesc: "Choose the winners of each round.",
+    bonusTitle: "Bonus Questions 🎁",
+    bonusDesc: "Earn extra points with these predictions!",
+    btnSave: "Save",
+    btnSaving: "Saving...",
+    btnToKnockout: "Knock-outs ➡️",
+    btnBack: "⬅️ Back",
+    btnToBonus: "To Bonus 🎁",
+    btnSaveAll: "Save All ✅",
+    alertFillGroup: "Please fill in the group stage!",
+    alertSaved: "Everything successfully saved! 🎉",
+    alertError: "Error saving. Check your internet connection.",
+    alertName: "Please enter a valid name.",
+    koSelectCountry: "Select country...",
+    koWinMethod: "Method of winning?",
+    koWin1: "Winner by 1 goal margin",
+    koWin2: "Winner by 2 goals margin",
+    koWin3: "Winner by 3+ goals margin",
+    koWinPen: "Won after Penalties",
+    r32: "Round of 32",
+    r16: "Round of 16",
+    qf: "Quarter-final",
+    sf: "Semi-final",
+    f: "The Final 🏆",
+    bq1: "1. Who will be the Tournament Top Scorer? (Player Name)",
+    bq2: "2. Which country will get the most Yellow/Red cards?",
+    bq3: "3. Which country will score the most own goals?",
+    bq4: "4. In which minute will the very first goal of the World Cup be scored?",
+    bExPlayer: "E.g., Cody Gakpo",
+    bExMin: "E.g., 14",
+    debugMsg: "🤖 Debug Mode Active: All results randomly filled!",
+    koUnknown: "To be determined",
+    // New Menu Keys
     menuToday: "📅 Today's Matches",
     menuStandings: "📊 Score Standings",
     menuPredictions: "📝 My Prediction",
@@ -20,13 +60,49 @@ const translations = {
     rank: "Rank",
     participant: "Participant",
     points: "Total Points",
-    loading: "Loading data...",
-    // ... mantiene tus llaves existentes
+    loading: "Loading data..."
   },
-    nl: { 
-        title: "WK 2026 Poule",
+  nl: {
+    title: "WK 2026 Poule",
     welcome: "Welkom bij de Familie Poule!",
     instructions: "Vul hieronder de uitslagen in.",
+    nameTitle: "Wie ben je?",
+    namePlaceholder: "Je naam...",
+    btnStart: "Starten",
+    koTitle: "Knock-out Fase",
+    koDesc: "Kies de winnaars van elke ronde.",
+    bonusTitle: "Bonus Vragen 🎁",
+    bonusDesc: "Verdien extra punten met deze voorspellingen!",
+    btnSave: "Opslaan",
+    btnSaving: "Opslaan...",
+    btnToKnockout: "Knock-outs ➡️",
+    btnBack: "⬅️ Terug",
+    btnToBonus: "Naar Bonus 🎁",
+    btnSaveAll: "Alles Opslaan ✅",
+    alertFillGroup: "Vul de groepsfase in!",
+    alertSaved: "Alles succesvol opgeslagen! 🎉",
+    alertError: "Fout bij opslaan. Check je internetverbinding.",
+    alertName: "Geldige naam a.u.b.",
+    koSelectCountry: "Selecteer land...",
+    koWinMethod: "Manier van winnen?",
+    koWin1: "Winnaar met 1 goal verschil",
+    koWin2: "Winnaar met 2 goals verschil",
+    koWin3: "Winnaar met 3+ goals verschil",
+    koWinPen: "Gewonnen na Penalty's",
+    r32: "1/16e Finale (Round of 32)",
+    r16: "1/8e Finale (Achtste Finale)",
+    qf: "Kwartfinale",
+    sf: "Halve Finale",
+    f: "De Finale 🏆",
+    bq1: "1. Wie wordt de Topscorer van het toernooi? (Spelersnaam)",
+    bq2: "2. Welk land pakt de meeste Gele/Rode kaarten?",
+    bq3: "3. Welk land scoort de meeste eigen doelpunten?",
+    bq4: "4. In welke minuut valt het allereerste doelpunt van het WK?",
+    bExPlayer: "Bijv: Cody Gakpo",
+    bExMin: "Bijv: 14",
+    debugMsg: "🤖 Debug Mode Actief: Alle uitslagen willekeurig ingevuld!",
+    koUnknown: "Nog onbekend",
+    // New Menu Keys
     menuToday: "📅 Wedstrijden Vandaag",
     menuStandings: "📊 Standen",
     menuPredictions: "📝 Mijn Voorspelling",
@@ -41,27 +117,49 @@ const translations = {
     rank: "Positie",
     participant: "Deelnemer",
     points: "Totale Punten",
-    loading: "Data laden...",
-        title: "WK 2026 Poule", welcome: "Welkom bij de Familie Poule!", instructions: "Vul hieronder de uitslagen in.",
-        nameTitle: "Wie ben je?", namePlaceholder: "Je naam...", btnStart: "Starten", 
-        koTitle: "Knock-out Fase", koDesc: "Kies de winnaars van elke ronde.",
-        bonusTitle: "Bonus Vragen 🎁", bonusDesc: "Verdien extra punten met deze voorspellingen!",
-        btnSave: "Opslaan", btnSaving: "Opslaan...", btnToKnockout: "Knock-outs ➡️", btnBack: "⬅️ Terug",
-        btnToBonus: "Naar Bonus 🎁", btnSaveAll: "Alles Opslaan ✅", alertFillGroup: "Vul de groepsfase in!",
-        alertSaved: "Alles succesvol opgeslagen! 🎉", alertError: "Fout bij opslaan. Check je internetverbinding.",
-        alertName: "Geldige naam a.u.b.", koSelectCountry: "Selecteer land...", koWinMethod: "Manier van winnen?",
-        koWin1: "Winnaar met 1 goal verschil", koWin2: "Winnaar met 2 goals verschil", koWin3: "Winnaar met 3+ goals verschil",
-        koWinPen: "Gewonnen na Penalty's", r32: "1/16e Finale (Round of 32)", r16: "1/8e Finale (Achtste Finale)",
-        qf: "Kwartfinale", sf: "Halve Finale", f: "De Finale 🏆",
-        bq1: "1. Wie wordt de Topscorer van het toernooi? (Spelersnaam)", bq2: "2. Welk land pakt de meeste Gele/Rode kaarten?",
-        bq3: "3. Welk land scoort de meeste eigen doelpunten?", bq4: "4. In welke minuut valt het allereerste doelpunt van het WK?",
-        bExPlayer: "Bijv: Cody Gakpo", bExMin: "Bijv: 14", debugMsg: "🤖 Debug Mode Actief: Alle uitslagen willekeurig ingevuld!",
-        koUnknown: "Nog onbekend"
-    },
-    es: { 
-        title: "Quiniela Mundial 2026",
+    loading: "Data laden..."
+  },
+  es: {
+    title: "Quiniela Mundial 2026",
     welcome: "¡Bienvenidos a la Quiniela Familiar!",
     instructions: "Introduce los resultados a continuación.",
+    nameTitle: "¿Quién eres?",
+    namePlaceholder: "Tu nombre...",
+    btnStart: "Empezar",
+    koTitle: "Fase Eliminatoria",
+    koDesc: "Elige los ganadores de cada ronda.",
+    bonusTitle: "Preguntas Extra 🎁",
+    bonusDesc: "¡Gana puntos extra con estas predicciones!",
+    btnSave: "Guardar",
+    btnSaving: "Guardando...",
+    btnToKnockout: "Eliminatorias ➡️",
+    btnBack: "⬅️ Volver",
+    btnToBonus: "Extra 🎁",
+    btnSaveAll: "Guardar Todo ✅",
+    alertFillGroup: "¡Completa la fase de grupos!",
+    alertSaved: "¡Todo guardado con éxito! 🎉",
+    alertError: "Error al guardar. Revisa tu conexión.",
+    alertName: "Nombre válido por favor.",
+    koSelectCountry: "Selecciona un país...",
+    koWinMethod: "¿Cómo ganaron?",
+    koWin1: "Ganador por 1 gol",
+    koWin2: "Ganador por 2 goles",
+    koWin3: "Ganador por 3+ goles",
+    koWinPen: "Ganador por Penaltis",
+    r32: "Dieciseisavos de final",
+    r16: "Octavos de final",
+    qf: "Cuartos de final",
+    sf: "Semifinal",
+    f: "La Final 🏆",
+    bq1: "1. ¿Quién será el máximo goleador del torneo? (Jugador)",
+    bq2: "2. ¿Qué país recibirá más tarjetas amarillas/rojas?",
+    bq3: "3. ¿Qué país marcará más autogoles?",
+    bq4: "4. ¿En qué minuto se marcará el primer gol del Mundial?",
+    bExPlayer: "Ej: Lamine Yamal",
+    bExMin: "Ej: 14",
+    debugMsg: "🤖 Modo Debug: ¡Resultados aleatorios generados!",
+    koUnknown: "Por determinar",
+    // New Menu Keys
     menuToday: "📅 Partidos de Hoy",
     menuStandings: "📊 Tabla de Posiciones",
     menuPredictions: "📝 Mi Predicción",
@@ -76,23 +174,8 @@ const translations = {
     rank: "Puesto",
     participant: "Participante",
     points: "Puntos Totales",
-    loading: "Cargando datos...",
-        title: "Quiniela Mundial 2026", welcome: "¡Bienvenidos a la Quiniela Familiar!", instructions: "Introduce los resultados a continuación.",
-        nameTitle: "¿Quién eres?", namePlaceholder: "Tu nombre...", btnStart: "Empezar",
-        koTitle: "Fase Eliminatoria", koDesc: "Elige los ganadores de cada ronda.",
-        bonusTitle: "Preguntas Extra 🎁", bonusDesc: "¡Gana puntos extra con estas predicciones!",
-        btnSave: "Guardar", btnSaving: "Guardando...", btnToKnockout: "Eliminatorias ➡️", btnBack: "⬅️ Volver",
-        btnToBonus: "Extra 🎁", btnSaveAll: "Guardar Todo ✅", alertFillGroup: "¡Completa la fase de grupos!",
-        alertSaved: "¡Todo guardado con éxito! 🎉", alertError: "Error al guardar. Revisa tu conexión.",
-        alertName: "Nombre válido por favor.", koSelectCountry: "Selecciona un país...", koWinMethod: "¿Cómo ganaron?",
-        koWin1: "Ganador por 1 gol", koWin2: "Ganador por 2 goles", koWin3: "Ganador por 3+ goles",
-        koWinPen: "Ganador por Penaltis", r32: "Dieciseisavos de final", r16: "Octavos de final",
-        qf: "Cuartos de final", sf: "Semifinal", f: "La Final 🏆",
-        bq1: "1. ¿Quién será el máximo goleador del torneo? (Jugador)", bq2: "2. ¿Qué país recibirá más tarjetas amarillas/rojas?",
-        bq3: "3. ¿Qué país marcará más autogoles?", bq4: "4. ¿En qué minuto se marcará el primer gol del Mundial?",
-        bExPlayer: "Ej: Lamine Yamal", bExMin: "Ej: 14", debugMsg: "🤖 Modo Debug: ¡Resultados aleatorios generados!",
-        koUnknown: "Por determinar"
-    }
+    loading: "Cargando datos..."
+  }
 };
 
 let currentLang = 'nl';
@@ -229,13 +312,53 @@ function submitName() {
     showMainApp(cleanName);
 }
 
-function showMainApp(name) {
-    document.getElementById('name-screen').classList.remove('active');
-    document.getElementById('app-screen').classList.add('active');
-    renderMatches();
-    
-    if (name === 'majiddebug') fillRandomScores();
-    else loadPredictions();
+// Update your existing showMainApp function
+function showMainApp(savedName) {
+  const nameScreen = document.getElementById('name-screen');
+  if (nameScreen) nameScreen.classList.remove('active');
+  
+  // Show the main navigation menu
+  const mainNav = document.getElementById('main-nav-menu');
+  if (mainNav) mainNav.style.display = 'flex';
+  
+  // Apply translations to the navigation buttons
+  const t = translations[currentLang];
+  if (document.getElementById('btn-menu-today')) document.getElementById('btn-menu-today').innerText = t.menuToday;
+  if (document.getElementById('btn-menu-standings')) document.getElementById('btn-menu-standings').innerText = t.menuStandings;
+  if (document.getElementById('btn-menu-predictions')) document.getElementById('btn-menu-predictions').innerText = t.menuPredictions;
+  
+  // Default to showing today's matches when logging in
+  switchTab('today');
+}
+
+// Add this function to handle switching tabs smoothly
+function switchTab(tabName) {
+  // Hide all tab screens
+  document.querySelectorAll('.tab-screen').forEach(el => el.style.display = 'none');
+  
+  // Remove active class from prediction screens if they are visible
+  const groupScreen = document.getElementById('group-stage-screen');
+  if (groupScreen) groupScreen.classList.remove('active');
+  
+  const t = translations[currentLang];
+  
+  if (tabName === 'today') {
+    document.getElementById('screen-today').style.display = 'block';
+    if (document.getElementById('ui-today-title')) {
+      document.getElementById('ui-today-title').innerText = t.todayTitle;
+    }
+    renderTodayMatches();
+  } else if (tabName === 'standings') {
+    document.getElementById('screen-standings').style.display = 'block';
+    if (document.getElementById('ui-standings-title')) {
+      document.getElementById('ui-standings-title').innerText = t.menuStandings;
+    }
+    renderLeaderboard();
+  } else if (tabName === 'predictions') {
+    document.getElementById('screen-predictions').style.display = 'block';
+    if (groupScreen) groupScreen.classList.add('active');
+    loadPredictions();
+  }
 }
 
 function switchScreen(hideId, showId) {
@@ -775,4 +898,303 @@ function fillRandomScores() {
     }
     
     alert(translations[currentLang].debugMsg);
+}
+
+// Fetches official, live match results from openfootball
+async function fetchWorldCupData() {
+  const url = 'https://raw.githubusercontent.com/openfootball/worldcup.json/master/2026/worldcup.json';
+  try {
+    const response = await fetch(url);
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching tournament data:", error);
+    return null;
+  }
+}
+
+// Fetches the entire pool database (all rows) from your Google Apps Script
+async function fetchAllDatabasePredictions() {
+  try {
+    const cacheBuster = new Date().getTime();
+    // Calling without a specific "naam" parameter instructs the script to fetch all records
+    const response = await fetch(`${SCRIPT_URL}?t=${cacheBuster}`);
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching database predictions:", error);
+    return {};
+  }
+}
+
+// Maps English team names from openfootball to your localized rawGroups data
+function getLocalTeamName(englishName) {
+  const translationMap = {
+    "Mexico": { nl: "Mexico", es: "México", en: "Mexico" },
+    "South Africa": { nl: "Zuid-Afrika", es: "Sudáfrica", en: "South Africa" },
+    "South Korea": { nl: "Zuid-Korea", es: "Corea del Sur", en: "South Korea" },
+    "Czech Republic": { nl: "Tsjechië", es: "Rep. Checa", en: "Czech Republic" },
+    "Canada": { nl: "Canada", es: "Canadá", en: "Canada" },
+    "Bosnia & Herzegovina": { nl: "Bosnië & Herz.", es: "Bosnia y Herz.", en: "Bosnia & Herzegovina" },
+    "Qatar": { nl: "Qatar", es: "Catar", en: "Qatar" },
+    "Switzerland": { nl: "Zwitserland", es: "Suiza", en: "Switzerland" },
+    "Brazil": { nl: "Brazilië", es: "Brasil", en: "Brazil" },
+    "Morocco": { nl: "Marruecos", es: "Marruecos", en: "Morocco" },
+    "Haiti": { nl: "Haïti", es: "Haití", en: "Haiti" },
+    "Scotland": { nl: "Schotland", es: "Escocia", en: "Scotland" },
+    "United States": { nl: "Verenigde Staten", es: "Estados Unidos", en: "United States" },
+    "Paraguay": { nl: "Paraguay", es: "Paraguay", en: "Paraguay" },
+    "Australia": { nl: "Australië", es: "Australia", en: "Australia" },
+    "Turkey": { nl: "Turkije", es: "Turquía", en: "Turkey" },
+    "Germany": { nl: "Duitsland", es: "Alemania", en: "Germany" },
+    "Curaçao": { nl: "Curaçao", es: "Curazao", en: "Curaçao" },
+    "Ivory Coast": { nl: "Ivoorkust", es: "Costa de Marfil", en: "Ivory Coast" },
+    "Ecuador": { nl: "Ecuador", es: "Ecuador", en: "Ecuador" },
+    "Netherlands": { nl: "Nederland", es: "Países Bajos", en: "Netherlands" },
+    "Japan": { nl: "Japan", es: "Japón", en: "Japan" },
+    "Sweden": { nl: "Zweden", es: "Suecia", en: "Sweden" },
+    "Tunisia": { nl: "Tunesië", es: "Túnez", en: "Tunisia" },
+    "Belgium": { nl: "België", es: "Bélgica", en: "Belgium" },
+    "Egypt": { nl: "Egypte", es: "Egipto", en: "Egypt" },
+    "Iran": { nl: "Iran", es: "Irán", en: "Iran" },
+    "New Zealand": { nl: "Nieuw-Zeeland", es: "Nueva Zelanda", en: "New Zealand" },
+    "Spain": { nl: "Spanje", es: "España", en: "Spain" },
+    "Cape Verde": { nl: "Kaapverdië", es: "Cabo Verde", en: "Cape Verde" },
+    "Saudi Arabia": { nl: "Saoedi-Arabië", es: "Arabia Saudita", en: "Saudi Arabia" },
+    "Uruguay": { nl: "Uruguay", es: "Uruguay", en: "Uruguay" },
+    "France": { nl: "Frankrijk", es: "Francia", en: "France" },
+    "Senegal": { nl: "Senegal", es: "Senegal", en: "Senegal" },
+    "Iraq": { nl: "Irak", es: "Irak", en: "Iraq" },
+    "Norway": { nl: "Noorwegen", es: "Noruega", en: "Norway" },
+    "Argentina": { nl: "Argentinië", es: "Argentina", en: "Argentina" },
+    "Algeria": { nl: "Algerije", es: "Argelia", en: "Algeria" },
+    "Austria": { nl: "Oostenrijk", es: "Austria", en: "Austria" },
+    "Jordan": { nl: "Jordanië", es: "Jordania", en: "Jordan" },
+    "Portugal": { nl: "Portugal", es: "Portugal", en: "Portugal" },
+    "DR Congo": { nl: "DR Congo", es: "RD Congo", en: "DR Congo" },
+    "Uzbekistan": { nl: "Oezbekistan", es: "Uzbekistán", en: "Uzbekistan" },
+    "Colombia": { nl: "Colombia", es: "Colombia", en: "Colombia" },
+    "England": { nl: "Engeland", es: "Inglaterra", en: "England" },
+    "Croatia": { nl: "Kroatië", es: "Croacia", en: "Croatia" },
+    "Ghana": { nl: "Ghana", es: "Ghana", en: "Ghana" },
+    "Panama": { nl: "Panama", es: "Panamá", en: "Panama" }
+  };
+  return translationMap[englishName] ? translationMap[englishName][currentLang] : englishName;
+}
+
+// Cross-references team combinations with matchOrder index to determine prediction IDs (e.g., "A1")
+function findMatchPredictionsKey(t1, t2) {
+  const clean = (name) => name.toLowerCase().replace(/[^a-z]/g, '');
+  for (const key in rawGroups) {
+    const teams = rawGroups[key].map(t => clean(t[0].nl));
+    const matchOrder = [ [0,1], [2,3], [0,2], [3,1], [3,0], [1,2] ];
+    
+    for (let i = 0; i < matchOrder.length; i++) {
+      const homeIdx = matchOrder[i][0];
+      const awayIdx = matchOrder[i][1];
+      if ((teams[homeIdx] === clean(t1) || teams[homeIdx] === clean(getLocalTeamName(t1))) && 
+          (teams[awayIdx] === clean(t2) || teams[awayIdx] === clean(getLocalTeamName(t2)))) {
+        return `${key}${i + 1}`;
+      }
+    }
+  }
+  return '';
+}
+
+async function renderTodayMatches() {
+  const container = document.getElementById('container-today-matches');
+  const t = translations[currentLang];
+  container.innerHTML = `<p>${t.loading}</p>`;
+  
+  const data = await fetchWorldCupData();
+  // Formats client system time into YYYY-MM-DD
+  const todayStr = new Date().toLocaleDateString('en-CA'); 
+  
+  if (!data || !data.matches) {
+    container.innerHTML = `<p>${t.noMatches}</p>`;
+    return;
+  }
+  
+  const todaysMatches = data.matches.filter(m => m.date === todayStr);
+  if (todaysMatches.length === 0) {
+    container.innerHTML = `<p>${t.noMatches} (${todayStr})</p>`;
+    return;
+  }
+  
+  const allParticipants = await fetchAllDatabasePredictions();
+  let html = '';
+  
+  todaysMatches.forEach(match => {
+    const isFinished = match.score && match.score.ft;
+    const actH = isFinished ? match.score.ft[0] : null;
+    const actA = isFinished ? match.score.ft[1] : null;
+    
+    html += `
+      <div class="match-card" style="border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 8px; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+        <h3 style="margin-top:0;">${t.matchday} ${match.round.replace('Matchday ', '')} ${match.group ? `- ${match.group}` : ''}</h3>
+        <p style="font-size: 1.2em; font-weight: bold;">${getLocalTeamName(match.team1)} vs ${getLocalTeamName(match.team2)}</p>
+        <p style="color: #666; font-size: 0.9em;">⏰ ${match.time} @ ${match.ground}</p>
+        ${isFinished ? `<p style="color: #28a745; font-weight: bold; font-size: 1.1em;">Final Score: ${actH} - ${actA}</p>` : '<p style="color: #fd7e14; font-weight: bold;">Scheduled / In Progress</p>'}
+        
+        <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
+        <h4 style="margin-bottom: 10px;">📋 ${t.predBy}:</h4>
+        <ul style="list-style: none; padding-left: 0; margin: 0;">
+    `;
+    
+    const matchKey = findMatchPredictionsKey(match.team1, match.team2);
+    
+    for (const pName in allParticipants) {
+      const userPreds = allParticipants[pName];
+      const predH = userPreds[`${matchKey}_home`];
+      const predA = userPreds[`${matchKey}_away`];
+      
+      if (predH !== undefined && predA !== undefined) {
+        let calculations = '';
+        if (isFinished) {
+          const points = calculateGroupPoints(predH, predA, actH, actA);
+          const feedback = points === 5 ? t.exactScore : (points === 2 ? t.outcomeOnly : t.missed);
+          calculations = ` ➡️ <span style="color:#007bff; font-weight:bold;">(${points} pts - ${feedback})</span>`;
+        }
+        html += `<li style="padding: 4px 0; border-bottom: 1px dashed #f1f1f1;"><strong>${pName}</strong>: ${predH} - ${predA}${calculations}</li>`;
+      }
+    }
+    
+    html += `</ul></div>`;
+  });
+  
+  container.innerHTML = html;
+}
+
+function calculateGroupPoints(predHome, predAway, actualHome, actualAway) {
+  const pH = parseInt(predHome);
+  const pA = parseInt(predAway);
+  const aH = parseInt(actualHome);
+  const aA = parseInt(actualAway);
+  
+  if (isNaN(pH) || isNaN(pA) || isNaN(aH) || isNaN(aA)) return 0;
+  if (pH === aH && pA === aA) return 5; // Exact Match Score
+  if (Math.sign(pH - pA) === Math.sign(aH - aA)) return 2; // Correct Outcome (Winner or Draw)
+  return 0; // Missed
+}
+
+async function renderLeaderboard() {
+  const container = document.getElementById('container-leaderboard');
+  const t = translations[currentLang];
+  container.innerHTML = `<p>${t.loading}</p>`;
+  
+  const apiData = await fetchWorldCupData();
+  const poolData = await fetchAllDatabasePredictions();
+  
+  if (!apiData || !poolData) {
+    container.innerHTML = '<p>Error loading leaderboard.</p>';
+    return;
+  }
+  
+  let scoreboard = [];
+  
+  // Set real tournament final resolutions here once determined by FIFA:
+  const finalTopScorer = "PorDefinir";
+  const finalMostCards = "PorDefinir";
+  const finalMostOwnGoals = "PorDefinir";
+  const finalFirstGoalMinute = 14; 
+  
+  for (const user in poolData) {
+    const preds = poolData[user];
+    let totalScore = 0;
+    
+    apiData.matches.forEach(match => {
+      if (!match.score || !match.score.ft) return;
+      const actH = match.score.ft[0];
+      const actA = match.score.ft[1];
+      const winner = actH > actA ? match.team1 : (actA > actH ? match.team2 : 'Draw');
+      
+      // Is it a Group Stage match?
+      if (!match.round.includes("Round") && !match.round.includes("Quarter") && !match.round.includes("Semi") && !match.round.includes("Final")) {
+        const matchKey = findMatchPredictionsKey(match.team1, match.team2);
+        if (matchKey && preds[`${matchKey}_home`] !== undefined) {
+          totalScore += calculateGroupPoints(preds[`${matchKey}_home`], preds[`${matchKey}_away`], actH, actA);
+        }
+      } else {
+        // Knockout Phase Advancement Logic
+        let advancedTargetTeam = winner; 
+        if (winner === 'Draw' && match.score.p) {
+          advancedTargetTeam = match.score.p[0] > match.score.p[1] ? match.team1 : match.team2;
+        }
+        
+        let roundBonusAdded = false;
+        if (match.round === "Round of 32" && verifyAdvancementSelection(preds, 'r32', advancedTargetTeam)) {
+          totalScore += 3; roundBonusAdded = true;
+        } else if (match.round === "Round of 16" && verifyAdvancementSelection(preds, 'r16', advancedTargetTeam)) {
+          totalScore += 5; roundBonusAdded = true;
+        } else if (match.round === "Quarter-final" && verifyAdvancementSelection(preds, 'qf', advancedTargetTeam)) {
+          totalScore += 8; roundBonusAdded = true;
+        } else if (match.round === "Semi-final" && verifyAdvancementSelection(preds, 'sf', advancedTargetTeam)) {
+          totalScore += 12; roundBonusAdded = true;
+        } else if (match.round === "Final" && verifyAdvancementSelection(preds, 'f', advancedTargetTeam)) {
+          totalScore += 20; roundBonusAdded = true; // Champion
+        }
+        
+        // Method of victory evaluation (+3 extra bonus points)
+        if (roundBonusAdded) {
+          const userMethodSelection = preds[`match_${match.num}_method`];
+          let actualMethod = 'koWin1'; // Default margin
+          const diff = Math.abs(actH - actA);
+          if (match.score.p) actualMethod = 'koWinPen';
+          else if (diff === 2) actualMethod = 'koWin2';
+          else if (diff >= 3) actualMethod = 'koWin3';
+          
+          if (userMethodSelection === actualMethod) {
+            totalScore += 3;
+          }
+        }
+      }
+    });
+    
+    // Bonus Section Points Evaluation
+    if (preds['bq1'] === finalTopScorer) totalScore += 15;
+    if (preds['bq2'] === finalMostCards) totalScore += 10;
+    if (preds['bq3'] === finalMostOwnGoals) totalScore += 10;
+    
+    if (preds['bq4'] !== undefined) {
+      const guessedMin = parseInt(preds['bq4']);
+      if (guessedMin === finalFirstGoalMinute) totalScore += 15;
+      else if (Math.abs(guessedMin - finalFirstGoalMinute) <= 3) totalScore += 5;
+    }
+    
+    scoreboard.push({ name: user, score: totalScore });
+  }
+  
+  scoreboard.sort((a, b) => b.score - a.score);
+  
+  let html = `
+    <table style="width:100%; border-collapse: collapse; text-align: left; background:#fff; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-radius:6px; overflow:hidden;">
+      <thead>
+        <tr style="background-color: #f8f9fa; border-bottom: 2px solid #dee2e6;">
+          <th style="padding: 12px; font-weight:600;">${t.rank}</th>
+          <th style="padding: 12px; font-weight:600;">${t.participant}</th>
+          <th style="padding: 12px; font-weight:600;">${t.points}</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+  scoreboard.forEach((row, idx) => {
+    html += `
+      <tr style="border-bottom: 1px solid #dee2e6;">
+        <td style="padding: 12px;"><strong>${idx + 1}</strong></td>
+        <td style="padding: 12px;">${row.name}</td>
+        <td style="padding: 12px; color: #28a745; font-weight: bold;">${row.score} pts</td>
+      </tr>
+    `;
+  });
+  html += '</tbody></table>';
+  container.innerHTML = html;
+}
+
+function verifyAdvancementSelection(userObj, prefix, team) {
+  const normalizedTeam = team.toLowerCase().replace(/[^a-z]/g, '');
+  for (const inputId in userObj) {
+    if (inputId.includes(prefix)) {
+      const selection = String(userObj[inputId]).toLowerCase().replace(/[^a-z]/g, '');
+      if (selection === normalizedTeam) return true;
+    }
+  }
+  return false;
 }
