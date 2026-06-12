@@ -873,7 +873,6 @@ function renderVisualBracket(matchUps) {
     html += '</div>';
     container.innerHTML = html;
 }
-
 function updateVisualBracket() {
     const rounds = ["R32", "R16", "QF", "SF", "F"];
     const counts = [16, 8, 4, 2, 1];
@@ -883,14 +882,21 @@ function updateVisualBracket() {
         for (let i = 1; i <= counts[rIdx]; i++) {
             const matchId = `${round}_${i}`;
             const targetEl1 = document.getElementById(`vis_team1_${matchId}`);
-            const targetEl2 = document.getElementById(`vis_team2_${matchId}`);
-            const winnerSelect = document.getElementById(`${matchId}_winner`);
-            const winner = winnerSelect ? winnerSelect.value : null;
             
             if (round !== "R32") {
                 if (!bracketFlow[matchId]) continue;
-                const source1Select = document.getElementById(`${bracketFlow[matchId][0]}_winner`);
-                const source2Select = document.getElementById(`${bracketFlow[matchId][1]}_winner`);
+                const source1Id = `${bracketFlow[matchId][0]}_winner`;
+                const source2Id = `${bracketFlow[matchId][1]}_winner`;
+                
+                const source1Select = document.getElementById(source1Id);
+                const source2Select = document.getElementById(source2Id);
+                
+                // DEBUG: Check what the computer is finding
+                if (source1Select) {
+                    console.log(`🔎 Found source dropdown ${source1Id}, value is: "${source1Select.value}"`);
+                } else {
+                    console.error(`❌ Could not find dropdown with ID: ${source1Id}`);
+                }
                 
                 const team1 = source1Select && source1Select.value ? source1Select.value : "";
                 const team2 = source2Select && source2Select.value ? source2Select.value : "";
@@ -914,6 +920,46 @@ function updateVisualBracket() {
         }
     });
 }
+// function updateVisualBracket() {
+//     const rounds = ["R32", "R16", "QF", "SF", "F"];
+//     const counts = [16, 8, 4, 2, 1];
+//     const t = translations[currentLang];
+    
+//     rounds.forEach((round, rIdx) => {
+//         for (let i = 1; i <= counts[rIdx]; i++) {
+//             const matchId = `${round}_${i}`;
+//             const targetEl1 = document.getElementById(`vis_team1_${matchId}`);
+//             const targetEl2 = document.getElementById(`vis_team2_${matchId}`);
+//             const winnerSelect = document.getElementById(`${matchId}_winner`);
+//             const winner = winnerSelect ? winnerSelect.value : null;
+            
+//             if (round !== "R32") {
+//                 if (!bracketFlow[matchId]) continue;
+//                 const source1Select = document.getElementById(`${bracketFlow[matchId][0]}_winner`);
+//                 const source2Select = document.getElementById(`${bracketFlow[matchId][1]}_winner`);
+                
+//                 const team1 = source1Select && source1Select.value ? source1Select.value : "";
+//                 const team2 = source2Select && source2Select.value ? source2Select.value : "";
+                
+//                 if (targetEl1) {
+//                     targetEl1.innerText = team1 || t.koUnknown;
+//                     targetEl1.className = `bracket-team ${!team1 ? 'empty' : ''}`;
+//                 }
+//                 if (targetEl2) {
+//                     targetEl2.innerText = team2 || t.koUnknown;
+//                     targetEl2.className = `bracket-team ${!team2 ? 'empty' : ''}`;
+//                 }
+//             }
+            
+//             // Markeer de winnaar in het groen
+//             if (winner && targetEl1 && targetEl1.innerText === winner) targetEl1.classList.add('winner');
+//             else if (targetEl1) targetEl1.classList.remove('winner');
+            
+//             if (winner && targetEl2 && targetEl2.innerText === winner) targetEl2.classList.add('winner');
+//             else if (targetEl2) targetEl2.classList.remove('winner');
+//         }
+//     });
+// }
 
 // ==========================================
 // 6. BONUS VRAGEN
