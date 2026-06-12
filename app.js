@@ -288,24 +288,32 @@ function initApp(lang) {
   setupLanguageData();
   applyTranslations();
   
-  // Safety checks: Only handle screen classes if the elements actually exist on this page
+  // Safely hide language layout wrappers
   const langScreen = document.getElementById('language-screen');
-  if (langScreen) langScreen.classList.remove('active');  
+  if (langScreen) {
+    langScreen.classList.remove('active');  
+    langScreen.style.display = 'none';
+  }
 
   const nameScreen = document.getElementById('name-screen');
   const savedName = localStorage.getItem('poule_user_name');
   
   if (nameScreen) {
     if (savedName) {
-      // If on predict.html and already logged in, jump straight to group stage
+      // If user has filled in their name before, skip the name field too and open their data
+      nameScreen.classList.remove('active');
+      nameScreen.style.display = 'none';
+      
       const groupStage = document.getElementById('group-stage-screen');
       if (groupStage) groupStage.classList.add('active');
       loadPredictions();
     } else {
+      // If they haven't filled in a name yet, prompt them for it here
       nameScreen.classList.add('active');
+      nameScreen.style.display = 'block';
     }
   } else {
-    // If we are on predict.html without a login box, just load data directly
+    // Fallback protection container
     const groupStage = document.getElementById('group-stage-screen');
     if (groupStage) {
       groupStage.classList.add('active');
@@ -313,7 +321,6 @@ function initApp(lang) {
     }
   }
 }
-
 function applyTranslations() {
   const t = translations[currentLang];
   if (!t) return;
