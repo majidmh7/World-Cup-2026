@@ -3,32 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WK 2026 Poule - Menu</title>
-  <link rel="stylesheet" href="style.css"> </head>
+  <title>WK 2026 Poule</title>
+  <link rel="stylesheet" href="style.css">
+</head>
 <body>
-  <div class="container" style="text-align: center; padding: 20px;">
+  <div class="container" style="padding: 20px; text-align: center; max-width: 500px; margin: 0 auto;">
     
     <div id="gate-language">
-      <h2>Select Language / Seleccione Idioma</h2>
-      <button onclick="setMenuLanguage('nl')">🇳🇱 Nederlands</button>
-      <button onclick="setMenuLanguage('en')">🇺🇸 English</button>
-      <button onclick="setMenuLanguage('es')">🇻🇪 Español</button>
-    </div>
-
-    <div id="gate-name" style="display: none; margin-top: 20px;">
-      <h2 id="lbl-name-title">Wie ben je?</h2>
-      <input type="text" id="txt-login-name" placeholder="Je naam...">
-      <button id="btn-login-submit" onclick="handleMenuLogin()">Starten</button>
+      <h2 style="margin-bottom:20px;">Select Language / Seleccione Idioma</h2>
+      <button onclick="setMenuLanguage('nl')" style="padding:12px 20px; margin:10px; font-size:16px; width:80%;">🇳🇱 Nederlands</button>
+      <button onclick="setMenuLanguage('en')" style="padding:12px 20px; margin:10px; font-size:16px; width:80%;">🇺🇸 English</button>
+      <button onclick="setMenuLanguage('es')" style="padding:12px 20px; margin:10px; font-size:16px; width:80%;">🇻🇪 Español</button>
     </div>
 
     <div id="dashboard-menu" style="display: none; margin-top: 20px;">
-      <h1 id="lbl-welcome">Welkom bij de Poule!</h1>
-      <p id="lbl-instructions">Kies een optie uit het menu:</p>
+      <h1 id="lbl-welcome" style="font-size: 24px; margin-bottom: 10px;">Welkom!</h1>
+      <p id="lbl-instructions" style="color: #666; margin-bottom: 30px;">Kies een optie:</p>
       
-      <div style="display: flex; flex-direction: column; gap: 15px; max-width: 300px; margin: 0 auto;">
-        <a href="today.html" class="btn-menu" id="lnk-today" style="text-decoration:none; padding:15px; background:#007bff; color:#fff; border-radius:5px;">📅 Today's Matches</a>
-        <a href="standings.html" class="btn-menu" id="lnk-standings" style="text-decoration:none; padding:15px; background:#28a745; color:#fff; border-radius:5px;">📊 Score Standings</a>
-        <a href="predict.html" class="btn-menu" id="lnk-predict" style="text-decoration:none; padding:15px; background:#fd7e14; color:#fff; border-radius:5px;">📝 My Prediction</a>
+      <div style="display: flex; flex-direction: column; gap: 15px;">
+        <a href="today.html" class="btn-menu" id="lnk-today" style="text-decoration:none; padding:15px; background:#007bff; color:#fff; border-radius:8px; font-weight:bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">📅 Today's Matches</a>
+        <a href="standings.html" class="btn-menu" id="lnk-standings" style="text-decoration:none; padding:15px; background:#28a745; color:#fff; border-radius:8px; font-weight:bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">📊 Score Standings</a>
+        <a href="predict.html" class="btn-menu" id="lnk-predict" style="text-decoration:none; padding:15px; background:#fd7e14; color:#fff; border-radius:8px; font-weight:bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">📝 My Prediction</a>
       </div>
     </div>
 
@@ -36,58 +31,30 @@
 
   <script src="app.js"></script>
   <script>
-    // Simple inline initialization specific to the landing menu lifecycle
     window.addEventListener('DOMContentLoaded', () => {
       const savedLang = localStorage.getItem('poule_lang');
-      const savedName = localStorage.getItem('poule_user_name');
-      
       if (savedLang) {
         currentLang = savedLang;
-        if (savedName) {
-          showDashboard();
-        } else {
-          document.getElementById('gate-language').style.display = 'none';
-          document.getElementById('gate-name').style.display = 'block';
-          updateMenuLabels();
-        }
+        showDashboard();
       }
     });
 
     function setMenuLanguage(lang) {
       currentLang = lang;
       localStorage.setItem('poule_lang', lang);
-      document.getElementById('gate-language').style.display = 'none';
-      document.getElementById('gate-name').style.display = 'block';
-      updateMenuLabels();
-    }
-
-    function updateMenuLabels() {
-      const t = translations[currentLang];
-      document.getElementById('lbl-name-title').innerText = t.nameTitle;
-      document.getElementById('txt-login-name').placeholder = t.namePlaceholder;
-      document.getElementById('btn-login-submit').innerText = t.btnStart;
-      document.getElementById('lbl-welcome').innerText = t.welcome;
-      document.getElementById('lbl-instructions').innerText = t.instructions;
-      document.getElementById('lnk-today').innerText = t.menuToday;
-      document.getElementById('lnk-standings').innerText = t.menuStandings;
-      document.getElementById('lnk-predict').innerText = t.menuPredictions;
-    }
-
-    function handleMenuLogin() {
-      const nameInput = document.getElementById('txt-login-name').value.trim();
-      if (!nameInput) {
-        alert(translations[currentLang].alertName);
-        return;
-      }
-      localStorage.setItem('poule_user_name', nameInput);
       showDashboard();
     }
 
     function showDashboard() {
       document.getElementById('gate-language').style.display = 'none';
-      document.getElementById('gate-name').style.display = 'none';
       document.getElementById('dashboard-menu').style.display = 'block';
-      updateMenuLabels();
+      
+      const t = translations[currentLang] || translations['nl'];
+      document.getElementById('lbl-welcome').innerText = t.welcome;
+      document.getElementById('lbl-instructions').innerText = t.instructions;
+      document.getElementById('lnk-today').innerText = t.menuToday;
+      document.getElementById('lnk-standings').innerText = t.menuStandings;
+      document.getElementById('lnk-predict').innerText = t.menuPredictions;
     }
   </script>
 </body>
