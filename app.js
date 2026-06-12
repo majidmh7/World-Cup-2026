@@ -733,12 +733,100 @@ function startKnockouts() {
     }, 100); 
 }
 
+// function renderKnockoutBracket(matchUps) {
+//     const t = translations[currentLang];
+//     const container = document.getElementById('knockout-container');
+//     let html = '';
+    
+//     // We genereren de standaard opties zonder direct data in te vullen
+//     const winMethods = `<option value="" disabled selected>${t.koWinMethod}</option><option value="1">${t.koWin1}</option><option value="2">${t.koWin2}</option><option value="3">${t.koWin3}</option><option value="pen">${t.koWinPen}</option>`;
+
+//     const rounds = [
+//         { id: "R32", title: t.r32, count: 16 },
+//         { id: "R16", title: t.r16, count: 8 },
+//         { id: "QF", title: t.qf, count: 4 },
+//         { id: "SF", title: t.sf, count: 2 },
+//         { id: "F", title: t.f, count: 1 }
+//     ];
+
+//     rounds.forEach(round => {
+//         html += `<div class="round-title">${round.title}</div>`;
+//         for (let i = 1; i <= round.count; i++) {
+//             const matchId = `${round.id}_${i}`;
+            
+//             let optionsHtml = `<option value="" disabled selected>${t.koSelectCountry}</option>`;
+//             let teamsLabel = "";
+
+//             if (round.id === "R32") {
+//                 const t1 = matchUps[i-1][0];
+//                 const t2 = matchUps[i-1][1];
+//                 optionsHtml += `<option value="${t1}">${t1}</option><option value="${t2}">${t2}</option>`;
+//                 teamsLabel = `${t1} <span style="color:#9ca3af; font-size: 12px; margin: 0 5px;">VS</span> ${t2}`;
+//             } else {
+//                 teamsLabel = `${t.koUnknown} <span style="color:#9ca3af; font-size: 12px; margin: 0 5px;">VS</span> ${t.koUnknown}`;
+//             }
+
+//             html += `
+//             <div class="ko-card">
+//                 <div class="ko-match-title">Match ${i}</div>
+//                 <div id="${matchId}_label" class="ko-match-label">${teamsLabel}</div>
+//                 <div class="ko-controls">
+//                     <select id="${matchId}_winner" class="ko-select" onchange="updateKnockoutOptions()">
+//                         ${optionsHtml}
+//                     </select>
+//                     <select id="${matchId}_margin" class="ko-select">
+//                         ${winMethods}
+//                     </select>
+//                 </div>
+//             </div>`;
+//         }
+//     });
+
+//     // Navigatie knoppen
+//     html += `
+//     <div style="display: flex; gap: 8px; margin-top: 20px; margin-bottom: 50px;">
+//         <button class="btn-primary" onclick="switchScreen('knockout-screen', 'app-screen')" style="flex: 1; background-color: #6b7280; font-size: 14px;">${t.btnBack}</button>
+//         <button id="save-btn-ko" class="btn-primary" onclick="collectAndSave()" style="flex: 1; background-color: #10b981; font-size: 14px;">${t.btnSave}</button>
+//         <button class="btn-primary" onclick="startBonus()" style="flex: 1; font-size: 14px;">${t.btnToBonus}</button>
+//     </div>`;
+    
+//     container.innerHTML = html;
+    
+//     // NUDAT DE HTML ER STAAT: Vul de opgeslagen data in voor Winnaars én de Manier van winnen
+//     ['R32', 'R16', 'QF', 'SF', 'F'].forEach(roundId => {
+//         const count = rounds.find(r => r.id === roundId).count;
+//         for (let i = 1; i <= count; i++) {
+//             const matchId = `${roundId}_${i}`;
+            
+//             // 1. Herstel de opgeslagen winnaar
+//             const savedWinner = savedDatabaseData[`${matchId}_winner`];
+//             const selectWinner = document.getElementById(`${matchId}_winner`);
+//             if (savedWinner && selectWinner) {
+//                 for (let j = 0; j < selectWinner.options.length; j++) {
+//                     if (selectWinner.options[j].value === savedWinner) {
+//                         selectWinner.value = savedWinner;
+//                         break;
+//                     }
+//                 }
+//             }
+
+//             // 2. Herstel de manier van winnen (DIT WAS HET MISSENDE/BUGGY STUKJE!)
+//             const savedMargin = savedDatabaseData[`${matchId}_margin`];
+//             const selectMargin = document.getElementById(`${matchId}_margin`);
+//             if (savedMargin && selectMargin) {
+//                 selectMargin.value = savedMargin;
+//             }
+//         }
+//         updateKnockoutOptions(); 
+//     });
+// }
+
 function renderKnockoutBracket(matchUps) {
     const t = translations[currentLang];
     const container = document.getElementById('knockout-container');
-    let html = '';
+    if (!container) return;
     
-    // We genereren de standaard opties zonder direct data in te vullen
+    let html = '';
     const winMethods = `<option value="" disabled selected>${t.koWinMethod}</option><option value="1">${t.koWin1}</option><option value="2">${t.koWin2}</option><option value="3">${t.koWin3}</option><option value="pen">${t.koWinPen}</option>`;
 
     const rounds = [
@@ -753,23 +841,18 @@ function renderKnockoutBracket(matchUps) {
         html += `<div class="round-title">${round.title}</div>`;
         for (let i = 1; i <= round.count; i++) {
             const matchId = `${round.id}_${i}`;
-            
             let optionsHtml = `<option value="" disabled selected>${t.koSelectCountry}</option>`;
-            let teamsLabel = "";
-
+            
             if (round.id === "R32") {
                 const t1 = matchUps[i-1][0];
                 const t2 = matchUps[i-1][1];
                 optionsHtml += `<option value="${t1}">${t1}</option><option value="${t2}">${t2}</option>`;
-                teamsLabel = `${t1} <span style="color:#9ca3af; font-size: 12px; margin: 0 5px;">VS</span> ${t2}`;
-            } else {
-                teamsLabel = `${t.koUnknown} <span style="color:#9ca3af; font-size: 12px; margin: 0 5px;">VS</span> ${t.koUnknown}`;
             }
 
             html += `
             <div class="ko-card">
                 <div class="ko-match-title">Match ${i}</div>
-                <div id="${matchId}_label" class="ko-match-label">${teamsLabel}</div>
+                <div id="${matchId}_label" class="ko-match-label">${t.koUnknown} VS ${t.koUnknown}</div>
                 <div class="ko-controls">
                     <select id="${matchId}_winner" class="ko-select" onchange="updateKnockoutOptions()">
                         ${optionsHtml}
@@ -782,43 +865,46 @@ function renderKnockoutBracket(matchUps) {
         }
     });
 
-    // Navigatie knoppen
     html += `
     <div style="display: flex; gap: 8px; margin-top: 20px; margin-bottom: 50px;">
-        <button class="btn-primary" onclick="switchScreen('knockout-screen', 'app-screen')" style="flex: 1; background-color: #6b7280; font-size: 14px;">${t.btnBack}</button>
+        <button class="btn-primary" onclick="switchScreen('knockout-screen', 'group-stage-screen')" style="flex: 1; background-color: #6b7280; font-size: 14px;">${t.btnBack}</button>
         <button id="save-btn-ko" class="btn-primary" onclick="collectAndSave()" style="flex: 1; background-color: #10b981; font-size: 14px;">${t.btnSave}</button>
         <button class="btn-primary" onclick="startBonus()" style="flex: 1; font-size: 14px;">${t.btnToBonus}</button>
     </div>`;
     
     container.innerHTML = html;
     
-    // NUDAT DE HTML ER STAAT: Vul de opgeslagen data in voor Winnaars én de Manier van winnen
-    ['R32', 'R16', 'QF', 'SF', 'F'].forEach(roundId => {
-        const count = rounds.find(r => r.id === roundId).count;
-        for (let i = 1; i <= count; i++) {
-            const matchId = `${roundId}_${i}`;
+    // --- DATA RESTORE VOLGORDE ---
+    console.log("➡️ Startte data herstel...");
+    
+    // 1. Eerst alle data invullen
+    rounds.forEach(round => {
+        for (let i = 1; i <= round.count; i++) {
+            const matchId = `${round.id}_${i}`;
             
-            // 1. Herstel de opgeslagen winnaar
+            // Winnaar herstellen
             const savedWinner = savedDatabaseData[`${matchId}_winner`];
             const selectWinner = document.getElementById(`${matchId}_winner`);
             if (savedWinner && selectWinner) {
-                for (let j = 0; j < selectWinner.options.length; j++) {
-                    if (selectWinner.options[j].value === savedWinner) {
-                        selectWinner.value = savedWinner;
-                        break;
-                    }
-                }
+                selectWinner.value = savedWinner;
+                console.log(`✅ Herstelde winnaar voor ${matchId}: ${savedWinner}`);
             }
 
-            // 2. Herstel de manier van winnen (DIT WAS HET MISSENDE/BUGGY STUKJE!)
+            // Margin herstellen
             const savedMargin = savedDatabaseData[`${matchId}_margin`];
             const selectMargin = document.getElementById(`${matchId}_margin`);
             if (savedMargin && selectMargin) {
                 selectMargin.value = savedMargin;
             }
         }
-        updateKnockoutOptions(); 
     });
+
+    // 2. DAARNA pas de bracket doorrekenen zodat de R16/QF/SF namen verschijnen
+    updateKnockoutOptions(); 
+    
+    // 3. Tot slot visuele bracket updaten
+    if (typeof updateVisualBracket === "function") updateVisualBracket();
+    console.log("➡️ Data herstel compleet.");
 }
 
 function renderVisualBracket(matchUps) {
