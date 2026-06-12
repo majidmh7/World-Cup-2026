@@ -1,41 +1,33 @@
 <!DOCTYPE html>
 <html lang="nl">
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#2563eb">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>WK 2026 Familie Poule</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2563eb">
 </head>
 <body>
 
-  <div style="position: absolute; top: 15px; left: 15px; z-index: 99999; margin: 0; padding: 0; box-sizing: border-box;">
-      <a href="index.html" style="text-decoration: none; font-weight: bold; color: #fd7e14; background: #ffffff; padding: 10px 15px; border: 1px solid #ddd; border-radius: 8px; display: inline-block; box-shadow: 0 2px 8px rgba(0,0,0,0.1); font-family: sans-serif; font-size: 14px;">
-        ⬅️ Terug naar Menu / Volver al Menú
-      </a>
+    <div style="position: absolute; top: 15px; left: 15px; z-index: 99999; margin: 0; padding: 0; box-sizing: border-box;">
+        <a href="index.html" style="text-decoration: none; font-weight: bold; color: #fd7e14; background: #ffffff; padding: 10px 15px; border: 1px solid #ddd; border-radius: 8px; display: inline-block; box-shadow: 0 2px 8px rgba(0,0,0,0.1); font-family: sans-serif; font-size: 14px;">
+            ⬅️ Terug naar Menu / Volver al Menú
+        </a>
     </div>
 
-    <div id="language-screen" class="screen active">
-        <div class="lang-container">
-            <h1>Kies je taal<br><small>Elige tu idioma</small></h1>
-            <button class="btn-primary" onclick="initApp('nl')">🇳🇱 Nederlands</button>
-            <button class="btn-primary" onclick="initApp('es')">🇪🇸 Español</button>
-        </div>
-    </div>
-
-    <div id="name-screen" class="screen" style="width: 100%; max-width: 450px; margin: 40px auto; padding: 20px; box-sizing: border-box; text-align: center;">
+    <div id="name-screen" class="screen" style="width: 100%; max-width: 450px; margin: 60px auto 40px auto; padding: 20px; box-sizing: border-box; text-align: center; display: none;">
         <div class="lang-container" style="text-align: center; padding: 20px;">
             <h2 id="ui-name-title" style="margin-bottom: 20px;">Wie ben je?</h2>
             
             <input type="text" id="name-input" placeholder="Je naam..." 
                    style="width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box;">
             
-            <button id="ui-btn-start" class="btn-primary" onclick="submitName()">Starten</button>
+            <button id="ui-btn-start" class="btn-primary" onclick="submitName()" style="width: 100%; padding: 12px; font-size: 16px;">Starten</button>
         </div>
     </div>
 
-    <div id="app-screen" class="screen">
+    <div id="group-stage-screen" class="screen" style="display: none; margin-top: 60px;">
         <header><h2 id="ui-title">WK 2026 Poule</h2></header>
         <main class="container">
             <h3 id="ui-welcome">Welkom!</h3>
@@ -44,7 +36,7 @@
         </main>
     </div>
 
-    <div id="knockout-screen" class="screen">
+    <div id="knockout-screen" class="screen" style="display: none;">
         <header><h2 id="ui-ko-title">Knock-out Fase</h2></header>
         <main class="container">
             <p style="margin-bottom: 20px;" id="ui-ko-desc">Kies de winnaars van elke ronde.</p>
@@ -55,7 +47,7 @@
         </main>
     </div>
 
-    <div id="bonus-screen" class="screen">
+    <div id="bonus-screen" class="screen" style="display: none;">
         <header><h2 id="ui-bonus-title">Bonus Vragen 🎁</h2></header>
         <main class="container">
             <p style="margin-bottom: 20px;" id="ui-bonus-desc">Verdien extra punten met deze voorspellingen!</p>
@@ -63,33 +55,30 @@
         </main>
     </div>
 
-    <script src="app.js?v=2"></script>
-    <script>
+    <script src="app.js?v=4"></script> <script>
+        // Service Worker setup
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js');
+                navigator.serviceWorker.register('sw.js').catch(err => console.log('SW registration failed:', err));
             });
         }
+
+        // Initialization logic
+        console.log("✅ predict.html inline script loaded.");
+        
+        window.addEventListener('DOMContentLoaded', () => {
+            console.log("✅ DOM Content Loaded.");
+            
+            const savedLang = localStorage.getItem('poule_lang') || 'nl';
+            console.log("✅ Language fetched from storage:", savedLang);
+            
+            if (typeof initApp === 'function') {
+                console.log("✅ initApp function found! Executing now...");
+                initApp(savedLang);
+            } else {
+                console.error("❌ CRITICAL ERROR: initApp function is missing! app.js did not load properly.");
+            }
+        });
     </script>
-    <script>
-    window.addEventListener('DOMContentLoaded', () => {
-      // Automatically grab the language chosen on the main menu dashboard
-      const savedLang = localStorage.getItem('poule_lang') || 'nl';
-      
-      // Force the app logic to configure using the pre-selected language
-      if (typeof initApp === 'function') {
-        initApp(savedLang);
-      }
-      
-      // Hide the duplicate language selection layout view instantly if it exists
-      const langScreen = document.getElementById('language-screen');
-      if (langScreen) {
-        langScreen.classList.remove('active');
-        langScreen.style.display = 'none';
-      }
-    }); // <-- This closing tag was missing and caused the crash!
-  </script>
-</body>
-</body>
 </body>
 </html>
