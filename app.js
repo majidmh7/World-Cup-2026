@@ -598,16 +598,23 @@ function renderKnockoutBracket(matchUps) {
             const matchId = `${round.id}_${i}`;
             let optionsHtml = `<option value="" disabled selected>${t.koSelectCountry}</option>`;
             
+            // 1. Voeg deze variabele weer toe
+            let teamsLabel = `${t.koUnknown} <span style="color:#9ca3af; font-size: 12px; margin: 0 5px;">VS</span> ${t.koUnknown}`;
+            
             if (round.id === "R32") {
                 const t1 = matchUps[i-1][0];
                 const t2 = matchUps[i-1][1];
                 optionsHtml += `<option value="${t1}">${t1}</option><option value="${t2}">${t2}</option>`;
+                
+                // 2. Koppel hier de landnamen van R32 aan het label
+                teamsLabel = `${t1} <span style="color:#9ca3af; font-size: 12px; margin: 0 5px;">VS</span> ${t2}`;
             }
 
             html += `
             <div class="ko-card">
                 <div class="ko-match-title">Match ${i}</div>
-                <div id="${matchId}_label" class="ko-match-label">${t.koUnknown} VS ${t.koUnknown}</div>
+                <!-- 3. Gebruik teamsLabel in plaats van hardcoded t.koUnknown -->
+                <div id="${matchId}_label" class="ko-match-label">${teamsLabel}</div>
                 <div class="ko-controls">
                     <select id="${matchId}_winner" class="ko-select" onchange="updateKnockoutOptions()">
                         ${optionsHtml}
