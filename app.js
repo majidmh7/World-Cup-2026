@@ -878,17 +878,24 @@ function renderKnockoutBracket(matchUps) {
     // --- DATA RESTORE VOLGORDE ---
     console.log("➡️ Startte data herstel...");
     
-    // 1. Eerst alle data invullen (Zonder events te triggeren)
+    // 1. Eerst alle data invullen
     rounds.forEach(round => {
         for (let i = 1; i <= round.count; i++) {
             const matchId = `${round.id}_${i}`;
             
+            // Winnaar herstellen
             const savedWinner = savedDatabaseData[`${matchId}_winner`];
             const selectWinner = document.getElementById(`${matchId}_winner`);
             if (savedWinner && selectWinner) {
                 selectWinner.value = savedWinner;
+                
+                // CRITIEKE TOEVOEGING: Forceer het 'change' event
+                // Dit zorgt dat de bracket de waarde echt 'ziet'
+                selectWinner.dispatchEvent(new Event('change'));
+                console.log(`✅ Herstelde winnaar voor ${matchId}: ${savedWinner}`);
             }
 
+            // Margin herstellen
             const savedMargin = savedDatabaseData[`${matchId}_margin`];
             const selectMargin = document.getElementById(`${matchId}_margin`);
             if (savedMargin && selectMargin) {
@@ -897,14 +904,12 @@ function renderKnockoutBracket(matchUps) {
         }
     });
 
-    // 2. FORCEER een kleine pauze voordat we de bracket tekenen
-    // Dit geeft de browser tijd om de select-boxen echt 'zichtbaar' te maken in het DOM
+    // 2. Wacht een fractie van een seconde en update de visualisatie
     setTimeout(() => {
-        console.log("➡️ Uitvoeren van visuele updates...");
-        updateKnockoutOptions(); // Berekent de volgende rondes
-        if (typeof updateVisualBracket === "function") updateVisualBracket(); // Tekent de bracket
+        updateKnockoutOptions(); 
+        if (typeof updateVisualBracket === "function") updateVisualBracket();
         console.log("➡️ Data herstel compleet.");
-    }, 100); 
+    }, 150);
 }
 //     // --- DATA RESTORE VOLGORDE ---
 //     console.log("➡️ Startte data herstel...");
