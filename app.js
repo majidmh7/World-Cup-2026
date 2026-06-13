@@ -875,27 +875,35 @@ function renderKnockoutBracket(matchUps) {
     container.innerHTML = html;
     container.innerHTML = html;
     
-    // --- DATA RESTORE VOLGORDE ---
+    // --- DATA RESTORE MET SLIMME MATCH ---
     console.log("➡️ Startte data herstel...");
     
-    // 1. Eerst alle data invullen
     rounds.forEach(round => {
         for (let i = 1; i <= round.count; i++) {
             const matchId = `${round.id}_${i}`;
-            
-            // Winnaar herstellen
             const savedWinner = savedDatabaseData[`${matchId}_winner`];
             const selectWinner = document.getElementById(`${matchId}_winner`);
+            
             if (savedWinner && selectWinner) {
-                selectWinner.value = savedWinner;
-                
-                // CRITIEKE TOEVOEGING: Forceer het 'change' event
-                // Dit zorgt dat de bracket de waarde echt 'ziet'
-                selectWinner.dispatchEvent(new Event('change'));
-                console.log(`✅ Herstelde winnaar voor ${matchId}: ${savedWinner}`);
+                // We vergelijken de opgeslagen naam met de opties in de dropdown
+                // We kijken of de "vlag" (eerste deel) overeenkomt of de naam
+                for (let j = 0; j < selectWinner.options.length; j++) {
+                    const optText = selectWinner.options[j].text;
+                    const optVal = selectWinner.options[j].value;
+                    
+                    // Vergelijking: bevat de optie de naam van het opgeslagen land?
+                    // We splitsen op de spatie om de vlag/emojis te negeren
+                    const savedName = savedWinner.split(' ').pop(); 
+                    const optName = optVal.split(' ').pop();
+                    
+                    if (optName === savedName || optVal === savedWinner) {
+                        selectWinner.value = optVal;
+                        selectWinner.dispatchEvent(new Event('change'));
+                        break;
+                    }
+                }
             }
 
-            // Margin herstellen
             const savedMargin = savedDatabaseData[`${matchId}_margin`];
             const selectMargin = document.getElementById(`${matchId}_margin`);
             if (savedMargin && selectMargin) {
@@ -904,13 +912,11 @@ function renderKnockoutBracket(matchUps) {
         }
     });
 
-    // 2. Wacht een fractie van een seconde en update de visualisatie
+    // Wacht kort en update de visualisatie
     setTimeout(() => {
         updateKnockoutOptions(); 
         if (typeof updateVisualBracket === "function") updateVisualBracket();
-        console.log("➡️ Data herstel compleet.");
-    }, 150);
-}
+    }, 200);
 //     // --- DATA RESTORE VOLGORDE ---
 //     console.log("➡️ Startte data herstel...");
     
