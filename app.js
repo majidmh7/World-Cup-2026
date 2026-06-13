@@ -1158,6 +1158,11 @@ async function renderLeaderboard() {
     const preds = poolData[user];
     let totalScore = 0;
     
+    // --- ADD FIRST GOAL BONUS FROM COLUMN D ---
+    if (preds.first_goal_bonus) {
+      totalScore += parseInt(preds.first_goal_bonus) || 0;
+    }
+    
     apiData.matches.forEach(match => {
       if (!match.score || !match.score.ft) return;
       const actH = match.score.ft[0];
