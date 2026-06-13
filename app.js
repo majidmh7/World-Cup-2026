@@ -873,24 +873,22 @@ function renderKnockoutBracket(matchUps) {
     </div>`;
     
     container.innerHTML = html;
+    container.innerHTML = html;
     
     // --- DATA RESTORE VOLGORDE ---
     console.log("➡️ Startte data herstel...");
     
-    // 1. Eerst alle data invullen
+    // 1. Eerst alle data invullen (Zonder events te triggeren)
     rounds.forEach(round => {
         for (let i = 1; i <= round.count; i++) {
             const matchId = `${round.id}_${i}`;
             
-            // Winnaar herstellen
             const savedWinner = savedDatabaseData[`${matchId}_winner`];
             const selectWinner = document.getElementById(`${matchId}_winner`);
             if (savedWinner && selectWinner) {
                 selectWinner.value = savedWinner;
-                console.log(`✅ Herstelde winnaar voor ${matchId}: ${savedWinner}`);
             }
 
-            // Margin herstellen
             const savedMargin = savedDatabaseData[`${matchId}_margin`];
             const selectMargin = document.getElementById(`${matchId}_margin`);
             if (savedMargin && selectMargin) {
@@ -899,13 +897,47 @@ function renderKnockoutBracket(matchUps) {
         }
     });
 
-    // 2. DAARNA pas de bracket doorrekenen zodat de R16/QF/SF namen verschijnen
-    updateKnockoutOptions(); 
-    
-    // 3. Tot slot visuele bracket updaten
-    if (typeof updateVisualBracket === "function") updateVisualBracket();
-    console.log("➡️ Data herstel compleet.");
+    // 2. FORCEER een kleine pauze voordat we de bracket tekenen
+    // Dit geeft de browser tijd om de select-boxen echt 'zichtbaar' te maken in het DOM
+    setTimeout(() => {
+        console.log("➡️ Uitvoeren van visuele updates...");
+        updateKnockoutOptions(); // Berekent de volgende rondes
+        if (typeof updateVisualBracket === "function") updateVisualBracket(); // Tekent de bracket
+        console.log("➡️ Data herstel compleet.");
+    }, 100); 
 }
+//     // --- DATA RESTORE VOLGORDE ---
+//     console.log("➡️ Startte data herstel...");
+    
+//     // 1. Eerst alle data invullen
+//     rounds.forEach(round => {
+//         for (let i = 1; i <= round.count; i++) {
+//             const matchId = `${round.id}_${i}`;
+            
+//             // Winnaar herstellen
+//             const savedWinner = savedDatabaseData[`${matchId}_winner`];
+//             const selectWinner = document.getElementById(`${matchId}_winner`);
+//             if (savedWinner && selectWinner) {
+//                 selectWinner.value = savedWinner;
+//                 console.log(`✅ Herstelde winnaar voor ${matchId}: ${savedWinner}`);
+//             }
+
+//             // Margin herstellen
+//             const savedMargin = savedDatabaseData[`${matchId}_margin`];
+//             const selectMargin = document.getElementById(`${matchId}_margin`);
+//             if (savedMargin && selectMargin) {
+//                 selectMargin.value = savedMargin;
+//             }
+//         }
+//     });
+
+//     // 2. DAARNA pas de bracket doorrekenen zodat de R16/QF/SF namen verschijnen
+//     updateKnockoutOptions(); 
+    
+//     // 3. Tot slot visuele bracket updaten
+//     if (typeof updateVisualBracket === "function") updateVisualBracket();
+//     console.log("➡️ Data herstel compleet.");
+// }
 
 function renderVisualBracket(matchUps) {
     const container = document.getElementById('bracket-visualization');
