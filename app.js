@@ -1148,6 +1148,10 @@ async function renderLeaderboard() {
     return;
   }
   
+  // --- NIEUW: Sla data globaal op in het geheugen voor de klik-breakdown ---
+  window.currentApiData = apiData;
+  window.currentPoolData = poolData;
+  
   let scoreboard = [];
   const finalTopScorer = "PorDefinir";
   const finalMostCards = "PorDefinir";
@@ -1157,11 +1161,14 @@ async function renderLeaderboard() {
   for (const user in poolData) {
     const preds = poolData[user];
     let totalScore = 0;
-    
-    // --- ADD FIRST GOAL BONUS FROM COLUMN D ---
+    console.log(preds)
+      
+    // Tel handmatige First Goal Bonus uit kolom D mee
     if (preds.first_goal_bonus) {
+      console.log(preds.first_goal_bonus)
+      console.log(totalScore)
       totalScore += parseInt(preds.first_goal_bonus) || 0;
-        console.log(preds.first_goal_bonus)
+      console.log(totalScore)
     }
     
     apiData.matches.forEach(match => {
@@ -1235,9 +1242,14 @@ async function renderLeaderboard() {
       </thead>
       <tbody>
   `;
+  
+  // --- AANGEPAST: Rijen zijn nu klikbaar gemaakt met inline hover effecten ---
   scoreboard.forEach((row, idx) => {
     html += `
-      <tr style="border-bottom: 1px solid #dee2e6;">
+      <tr onclick="showParticipantBreakdown('${row.name.replace(/'/g, "\\'")}')" 
+          style="border-bottom: 1px solid #dee2e6; cursor: pointer; transition: background 0.15s;" 
+          onmouseover="this.style.backgroundColor='#f1f5f9'" 
+          onmouseout="this.style.backgroundColor='transparent'">
         <td style="padding: 12px;"><strong>${idx + 1}</strong></td>
         <td style="padding: 12px;">${row.name}</td>
         <td style="padding: 12px; color: #28a745; font-weight: bold;">${row.score} pts</td>
@@ -1257,4 +1269,175 @@ function verifyAdvancementSelection(userObj, prefix, team) {
     }
   }
   return false;
+}
+
+
+function showParticipantBreakdown(userName) {
+    const apiData = window.currentApiData;
+    const poolData = window.currentPoolData;
+    if (!apiData || !poolData || !poolData[userName]) return;
+
+    const preds = poolData[userName];
+    
+    const finalTopScorer = "PorDefinir";
+    const finalMostCards = "PorDefinir";
+    const finalMostOwnGoals = "PorDefinir";
+    const finalFirstGoalMinute = 14;
+
+    // Start de HTML structuur van de pop-up modal
+    let html = `
+        <div style="background: white; padding: 22px; border-radius: 14px; max-width: 550px; width: 92%; max-height: 78vh; overflow-y: auto; box-shadow: 0 12px 30px rgba(0,0,0,0.25); font-family: sans-serif; position: relative; animation: poulePop 0.2s ease-out;">
+            <button onclick="closePouleModal()" style="position: absolute; top: 14px; right: 16px; background: none; border: none; font-size: 22px; cursor: pointer; color: #9ca3af; font-weight: bold;">✕</button>
+            <h3 style="margin-top: 0; margin-bottom: 15px; color: #111827; border-bottom: 2px solid #f3f4f6; padding-bottom: 10px; font-size: 18px;">📊 Puntenoverzicht: ${userName}</h3>
+            
+            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
+                <thead>
+                    <tr style="background: #f3f4f6; border-bottom: 1px solid #e5e7eb; color: #4b5563;">
+                        <th style="padding: 8px;">Onderdeel</th>
+                        <th style="padding: 8px; text-align: center;">Voorspelling</th>
+                        <th style="padding: 8px; text-align: center;">Uitslag</th>
+                        <th style="padding: 8px; text-align: right;">Score</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+
+    // 1. VOEG DE EXPLICIETE KOLOM D BONUS TOE
+    const firstGoalBonus = parseInt(preds.first_goal_bonus) || 0;
+    html += `
+        <tr style="background: #f0fdf4; font-weight: bold; border-bottom: 1px solid #e5e7eb;">
+            <td style="padding: 10px; color: #16a34a;">🎁 First Goal Bonus (Column D)</td>
+            <td style="padding: 10px; text-align: center;">-</td>
+            <td style="padding: 10px; text-align: center;">-</td>
+            <td style="padding: 10px; text-align: right; color: #16a34a;">+${firstGoalBonus} pts</td>
+        </tr>
+    `;
+
+    // 2. Loop door alle gespeelde/afgeronde wedstrijden uit de API
+    apiData.matches.forEach(match => {
+        if (!match.score || !match.score.ft) return;
+        const actH = match.score.ft[0];
+        const actA = match.score.ft[1];
+        const winner = actH > actA ? match.team1 : (actA > actH ? match.team2 : 'Draw');
+        const matchName = `${getLocalTeamName(match.team1)} - ${getLocalTeamName(match.team2)}`;
+        
+        let predText = "-";
+        let pointsEarned = 0;
+
+        // Groepsfase Wedstrijden
+        if (!match.round.includes("Round") && !match.round.includes("Quarter") && !match.round.includes("Semi") && !match.round.includes("Final")) {
+            const matchKey = findMatchPredictionsKey(match.team1, match.team2);
+            if (matchKey && preds[`${matchKey}_home`] !== undefined) {
+                predText = `${preds[`${matchKey}_home`]} - ${preds[`${matchKey}_away`]}`;
+                pointsEarned = calculateGroupPoints(preds[`${matchKey}_home`], preds[`${matchKey}_away`], actH, actA);
+            }
+            if (predText !== "-") {
+                html += `
+                    <tr style="border-bottom: 1px solid #f3f4f6;">
+                        <td style="padding: 8px; color: #4b5563;">${matchName} <small style="color:#9ca3af;">(Groep)</small></td>
+                        <td style="padding: 8px; text-align: center; font-weight:500;">${predText}</td>
+                        <td style="padding: 8px; text-align: center; color: #666;">${actH} - ${actA}</td>
+                        <td style="padding: 8px; text-align: right; font-weight: bold; color: ${pointsEarned > 0 ? '#10b981' : '#9ca3af'};">${pointsEarned > 0 ? `+${pointsEarned}` : '0'} pts</td>
+                    </tr>
+                `;
+            }
+        } else {
+            // Knockout Fase Wedstrijden
+            let advancedTargetTeam = winner; 
+            if (winner === 'Draw' && match.score.p) {
+                advancedTargetTeam = match.score.p[0] > match.score.p[1] ? match.team1 : match.team2;
+            }
+            
+            let koPoints = 0;
+            let roundBonusAdded = false;
+            if (match.round === "Round of 32" && verifyAdvancementSelection(preds, 'r32', advancedTargetTeam)) { koPoints += 3; roundBonusAdded = true; }
+            else if (match.round === "Round of 16" && verifyAdvancementSelection(preds, 'r16', advancedTargetTeam)) { koPoints += 5; roundBonusAdded = true; }
+            else if (match.round === "Quarter-final" && verifyAdvancementSelection(preds, 'qf', advancedTargetTeam)) { koPoints += 8; roundBonusAdded = true; }
+            else if (match.round === "Semi-final" && verifyAdvancementSelection(preds, 'sf', advancedTargetTeam)) { koPoints += 12; roundBonusAdded = true; }
+            else if (match.round === "Final" && verifyAdvancementSelection(preds, 'f', advancedTargetTeam)) { koPoints += 20; roundBonusAdded = true; }
+            
+            let methodPoints = 0;
+            let methodText = "";
+            if (roundBonusAdded) {
+                const userMethodSelection = preds[`match_${match.num}_method`];
+                let actualMethod = 'koWin1';
+                const diff = Math.abs(actH - actA);
+                if (match.score.p) actualMethod = 'koWinPen';
+                else if (diff === 2) actualMethod = 'koWin2';
+                else if (diff >= 3) actualMethod = 'koWin3';
+                
+                if (userMethodSelection === actualMethod) {
+                    methodPoints = 3;
+                    methodText = " <small style='color:#3b82f6;'>+Uitslag</small>";
+                }
+            }
+
+            pointsEarned = koPoints + methodPoints;
+            if (roundBonusAdded) {
+                html += `
+                    <tr style="border-bottom: 1px solid #f3f4f6; background: #f8fafc;">
+                        <td style="padding: 8px; color: #1e293b; font-weight: 500;">${matchName} <small style="color:#3b82f6; font-weight:600;">(KO)</small></td>
+                        <td style="padding: 8px; text-align: center; color: #10b981; font-weight:600; font-size:11px;">✔ Door<sup>${methodText}</sup></td>
+                        <td style="padding: 8px; text-align: center; color: #666;">${actH} - ${actA}</td>
+                        <td style="padding: 8px; text-align: right; font-weight: bold; color: #3b82f6;">+${pointsEarned} pts</td>
+                    </tr>
+                `;
+            }
+        }
+    });
+
+    // 3. Toevoegen van de Bonusvragen als deze correct beantwoord zijn
+    let bonusQuestionsHtml = "";
+    if (preds['bq1'] === finalTopScorer) { bonusQuestionsHtml += `<tr style="border-bottom: 1px solid #f3f4f6; background:#fffbeb;"><td style="padding: 8px; font-weight:500;">🏆 Topscorer Voorspelling</td><td style="padding: 8px; text-align:center;">${preds['bq1']}</td><td style="padding: 8px; text-align:center;">${finalTopScorer}</td><td style="padding: 8px; text-align:right; font-weight:bold; color:#d97706;">+15 pts</td></tr>`; }
+    if (preds['bq2'] === finalMostCards) { bonusQuestionsHtml += `<tr style="border-bottom: 1px solid #f3f4f6; background:#fffbeb;"><td style="padding: 8px; font-weight:500;">🟨 Meeste Kaarten Voorspelling</td><td style="padding: 8px; text-align:center;">${preds['bq2']}</td><td style="padding: 8px; text-align:center;">${finalMostCards}</td><td style="padding: 8px; text-align:right; font-weight:bold; color:#d97706;">+10 pts</td></tr>`; }
+    if (preds['bq3'] === finalMostOwnGoals) { bonusQuestionsHtml += `<tr style="border-bottom: 1px solid #f3f4f6; background:#fffbeb;"><td style="padding: 8px; font-weight:500;">⚽ Eigen Doelpunten Voorspelling</td><td style="padding: 8px; text-align:center;">${preds['bq3']}</td><td style="padding: 8px; text-align:center;">${finalMostOwnGoals}</td><td style="padding: 8px; text-align:right; font-weight:bold; color:#d97706;">+10 pts</td></tr>`; }
+    
+    if (preds['bq4'] !== undefined) {
+        const guessedMin = parseInt(preds['bq4']);
+        if (guessedMin === finalFirstGoalMinute) {
+            bonusQuestionsHtml += `<tr style="border-bottom: 1px solid #f3f4f6; background:#fffbeb;"><td style="padding: 8px; font-weight:500;">⏱ Minuut Eerste Doelpunt</td><td style="padding: 8px; text-align:center;">${guessedMin}'</td><td style="padding: 8px; text-align:center;">${finalFirstGoalMinute}'</td><td style="padding: 8px; text-align:right; font-weight:bold; color:#d97706;">+15 pts</td></tr>`;
+        } else if (Math.abs(guessedMin - finalFirstGoalMinute) <= 3) {
+            bonusQuestionsHtml += `<tr style="border-bottom: 1px solid #f3f4f6; background:#fffbeb;"><td style="padding: 8px; font-weight:500;">⏱ Minuut Eerste Doelpunt (In de buurt)</td><td style="padding: 8px; text-align:center;">${guessedMin}'</td><td style="padding: 8px; text-align:center;">${finalFirstGoalMinute}'</td><td style="padding: 8px; text-align:right; font-weight:bold; color:#d97706;">+5 pts</td></tr>`;
+        }
+    }
+    html += bonusQuestionsHtml;
+
+    html += `
+                </tbody>
+            </table>
+        </div>
+        <style>
+            @keyframes poulePop { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        </style>
+    `;
+
+    // Bouw de semi-transparante verduisteringslaag op het scherm
+    let modalOverlay = document.getElementById('poule-modal-overlay');
+    if (!modalOverlay) {
+        modalOverlay = document.createElement('div');
+        modalOverlay.id = 'poule-modal-overlay';
+        modalOverlay.style.position = 'fixed';
+        modalOverlay.style.top = '0';
+        modalOverlay.style.left = '0';
+        modalOverlay.style.width = '100%';
+        modalOverlay.style.height = '100%';
+        modalOverlay.style.background = 'rgba(0, 0, 0, 0.45)';
+        modalOverlay.style.backdropFilter = 'blur(4px)';
+        modalOverlay.style.display = 'flex';
+        modalOverlay.style.justifyContent = 'center';
+        modalOverlay.style.alignItems = 'center';
+        modalOverlay.style.zIndex = '99999';
+        
+        // Sluit pop-up als de gebruiker buiten het witte vlak klikt
+        modalOverlay.onclick = function(e) { if(e.target === modalOverlay) closePouleModal(); };
+        document.body.appendChild(modalOverlay);
+    }
+    
+    modalOverlay.innerHTML = html;
+    modalOverlay.style.display = 'flex';
+}
+
+function closePouleModal() {
+    const modalOverlay = document.getElementById('poule-modal-overlay');
+    if (modalOverlay) modalOverlay.style.display = 'none';
 }
