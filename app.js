@@ -1161,6 +1161,7 @@ async function renderLeaderboard() {
     // --- ADD FIRST GOAL BONUS FROM COLUMN D ---
     if (preds.first_goal_bonus) {
       totalScore += parseInt(preds.first_goal_bonus) || 0;
+        console.log(preds.first_goal_bonus)
     }
     
     apiData.matches.forEach(match => {
