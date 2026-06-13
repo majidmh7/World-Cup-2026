@@ -897,4 +897,351 @@ function fillRandomScores() {
             const awaySelect = document.getElementById(`${group}${index + 1}_away`);
             if (homeSelect && awaySelect) {
                 homeSelect.value = possibleScores[Math.floor(Math.random() * possibleScores.length)];
-                awaySelect.value = possibleScores
+                awaySelect.value = possibleScores[Math.floor(Math.random() * possibleScores.length)];
+            }
+        });
+        calculateGroupStandings(group); 
+    }
+    
+    alert(translations[currentLang].debugMsg);
+}
+
+async function fetchWorldCupData() {
+  const url = 'https://raw.githubusercontent.com/openfootball/worldcup.json/master/2026/worldcup.json';
+  try {
+    const response = await fetch(url);
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching tournament data:", error);
+    return null;
+  }
+}
+
+async function fetchAllDatabasePredictions() {
+  try {
+    const cacheBuster = new Date().getTime();
+    const response = await fetch(`${SCRIPT_URL}?t=${cacheBuster}`);
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching database predictions:", error);
+    return {};
+  }
+}
+
+function getLocalTeamName(englishName) {
+  const translationMap = {
+    "Mexico": { nl: "Mexico", es: "México", en: "Mexico" },
+    "South Africa": { nl: "Zuid-Afrika", es: "Sudáfrica", en: "South Africa" },
+    "South Korea": { nl: "Zuid-Korea", es: "Corea del Sur", en: "South Korea" },
+    "Czech Republic": { nl: "Tsjechië", es: "Rep. Checa", en: "Czech Republic" },
+    "Canada": { nl: "Canada", es: "Canadá", en: "Canada" },
+    "Bosnia & Herzegovina": { nl: "Bosnië & Herz.", es: "Bosnia y Herz.", en: "Bosnia & Herzegovina" },
+    "Qatar": { nl: "Qatar", es: "Catar", en: "Qatar" },
+    "Switzerland": { nl: "Zwitserland", es: "Suiza", en: "Switzerland" },
+    "Brazil": { nl: "Brazilië", es: "Brasil", en: "Brazil" },
+    "Morocco": { nl: "Marruecos", es: "Marruecos", en: "Morocco" },
+    "Haiti": { nl: "Haïti", es: "Haití", en: "Haiti" },
+    "Scotland": { nl: "Schotland", es: "Escocia", en: "Scotland" },
+    "United States": { nl: "Verenigde Staten", es: "Estados Unidos", en: "United States" },
+    "Paraguay": { nl: "Paraguay", es: "Paraguay", en: "Paraguay" },
+    "Australia": { nl: "Australië", es: "Australia", en: "Australia" },
+    "Turkey": { nl: "Turkije", es: "Turquía", en: "Turkey" },
+    "Germany": { nl: "Duitsland", es: "Alemania", en: "Germany" },
+    "Curaçao": { nl: "Curaçao", es: "Curazao", en: "Curaçao" },
+    "Ivory Coast": { nl: "Ivoorkust", es: "Costa de Marfil", en: "Ivory Coast" },
+    "Ecuador": { nl: "Ecuador", es: "Ecuador", en: "Ecuador" },
+    "Netherlands": { nl: "Nederland", es: "Países Bajos", en: "Netherlands" },
+    "Japan": { nl: "Japan", es: "Japón", en: "Japan" },
+    "Sweden": { nl: "Zweden", es: "Suecia", en: "Sweden" },
+    "Tunisia": { nl: "Tunesië", es: "Túnez", en: "Tunisia" },
+    "Belgium": { nl: "België", es: "Bélgica", en: "Belgium" },
+    "Egypt": { nl: "Egypte", es: "Egipto", en: "Egypt" },
+    "Iran": { nl: "Iran", es: "Irán", en: "Iran" },
+    "New Zealand": { nl: "Nieuw-Zeeland", es: "Nueva Zelanda", en: "New Zealand" },
+    "Spain": { nl: "Spanje", es: "España", en: "Spain" },
+    "Cape Verde": { nl: "Kaapverdië", es: "Cabo Verde", en: "Cape Verde" },
+    "Saudi Arabia": { nl: "Saoedi-Arabië", es: "Arabia Saudita", en: "Saudi Arabia" },
+    "Uruguay": { nl: "Uruguay", es: "Uruguay", en: "Uruguay" },
+    "France": { nl: "Frankrijk", es: "Francia", en: "France" },
+    "Senegal": { nl: "Senegal", es: "Senegal", en: "Senegal" },
+    "Iraq": { nl: "Irak", es: "Irak", en: "Iraq" },
+    "Norway": { nl: "Noorwegen", es: "Noruega", en: "Norway" },
+    "Argentina": { nl: "Argentinië", es: "Argentina", en: "Argentina" },
+    "Algeria": { nl: "Algerije", es: "Argelia", en: "Algeria" },
+    "Austria": { nl: "Oostenrijk", es: "Austria", en: "Austria" },
+    "Jordan": { nl: "Jordanië", es: "Jordania", en: "Jordan" },
+    "Portugal": { nl: "Portugal", es: "Portugal", en: "Portugal" },
+    "DR Congo": { nl: "DR Congo", es: "RD Congo", en: "DR Congo" },
+    "Uzbekistan": { nl: "Oezbekistan", es: "Uzbekistán", en: "Uzbekistan" },
+    "Colombia": { nl: "Colombia", es: "Colombia", en: "Colombia" },
+    "England": { nl: "Engeland", es: "Inglaterra", en: "England" },
+    "Croatia": { nl: "Kroatië", es: "Croacia", en: "Croatia" },
+    "Ghana": { nl: "Ghana", es: "Ghana", en: "Ghana" },
+    "Panama": { nl: "Panama", es: "Panamá", en: "Panama" }
+  };
+  return translationMap[englishName] ? translationMap[englishName][currentLang] : englishName;
+}
+
+function findMatchPredictionsKey(t1, t2) {
+  const normalize = (name) => {
+    if (!name) return "";
+    const clean = name.toLowerCase().trim();
+    if (clean.includes("unite") || clean.includes("usa") || clean.includes("verenigde")) return "united states";
+    if (clean.includes("korea") || clean.includes("zuid-korea")) return "south korea";
+    if (clean.includes("africa") || clean.includes("zuid-afrika")) return "south africa";
+    if (clean.includes("czech") || clean.includes("tsjechi")) return "czech republic";
+    if (clean.includes("bosnia") || clean.includes("bosni")) return "bosnia & herzegovina";
+    if (clean.includes("nether") || clean.includes("nederland")) return "netherlands";
+    return clean;
+  };
+
+  const cleanT1 = normalize(t1);
+  const cleanT2 = normalize(t2);
+
+  const referenceGroups = {
+    A: ["mexico", "south africa", "south korea", "czech republic"],
+    B: ["canada", "bosnia & herzegovina", "qatar", "switzerland"],
+    C: ["brazil", "morocco", "haiti", "scotland"],
+    D: ["united states", "paraguay", "australia", "turkey"],
+    E: ["germany", "curaçao", "ivory coast", "ecuador"],
+    F: ["netherlands", "japan", "sweden", "tunisia"],
+    G: ["belgium", "egypt", "iran", "new zealand"],
+    H: ["spain", "cape verde", "saudi arabia", "uruguay"],
+    I: ["france", "senegal", "iraq", "norway"],
+    J: ["argentina", "algeria", "austria", "jordan"],
+    K: ["portugal", "dr congo", "uzbekistan", "colombia"],
+    L: ["england", "croatia", "ghana", "panama"]
+  };
+
+  for (const groupKey in referenceGroups) {
+    const list = referenceGroups[groupKey];
+    const matchOrder = [ [0,1], [2,3], [0,2], [3,1], [3,0], [1,2] ];
+    
+    for (let i = 0; i < matchOrder.length; i++) {
+      const hIdx = matchOrder[i][0];
+      const aIdx = matchOrder[i][1];
+      if ((list[hIdx] === cleanT1 && list[aIdx] === cleanT2) || 
+          (list[hIdx] === cleanT2 && list[aIdx] === cleanT1)) {
+        return `${groupKey}${i + 1}`;
+      }
+    }
+  }
+  return '';
+}
+
+async function renderTodayMatches(targetDateString) {
+  const container = document.getElementById('container-today-matches');
+  if (!container) return;
+  const t = translations[currentLang] || translations['nl'];
+  container.innerHTML = `<p style="text-align:center; color:#666; font-family:sans-serif; margin-top:20px;">${t.loading}</p>`;
+  
+  const data = await fetchWorldCupData();
+  if (!data || !data.matches) {
+    container.innerHTML = `<p style="text-align:center; padding:20px; font-family:sans-serif;">${t.noMatches}</p>`;
+    return;
+  }
+  
+  const selectedMatches = data.matches.filter(m => String(m.date).trim() === String(targetDateString).trim());
+  
+  if (selectedMatches.length === 0) {
+    container.innerHTML = `<p style="text-align:center; padding:30px 10px; color:#777; font-family:sans-serif;">${t.noMatches} (${targetDateString})</p>`;
+    return;
+  }
+  
+  const allParticipants = await fetchAllDatabasePredictions();
+  let html = '';
+  
+  selectedMatches.forEach(match => {
+    const isFinished = match.score && match.score.ft;
+    const actH = isFinished ? match.score.ft[0] : null;
+    const actA = isFinished ? match.score.ft[1] : null;
+    
+    html += `
+      <div style="background:#ffffff; border:1px solid #e0e0e0; border-radius:12px; padding:16px; margin-bottom:20px; box-sizing:border-box; width:100%; display:flex; flex-direction:column; clear:both; text-align:left; font-family:sans-serif; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
+        <div style="font-size:12px; color:#888; font-weight:bold; text-transform:uppercase; margin-bottom:6px; letter-spacing:0.5px;">
+          ${t.matchday} ${match.round.replace('Matchday ', '')} ${match.group ? `• ${match.group}` : ''}
+        </div>
+        <div style="font-size:18px; font-weight:8px; color:#111; margin:5px 0; line-height:1.3;">
+          ${getLocalTeamName(match.team1)} vs ${getLocalTeamName(match.team2)}
+        </div>
+        <div style="font-size:13px; color:#666; margin-bottom:12px; display:flex; align-items:center; gap:4px;">
+          ⏰ ${match.time} @ ${match.ground}
+        </div>
+    `;
+    
+    if (isFinished) {
+      html += `<div style="background:#e2f0d9; color:#385723; padding:10px; border-radius:8px; font-weight:bold; font-size:14px; margin-bottom:15px; border-left:4px solid #385723;">Uitslag: ${actH} - ${actA}</div>`;
+    } else {
+      html += `<div style="background:#fff3cd; color:#856404; padding:10px; border-radius:8px; font-weight:bold; font-size:14px; margin-bottom:15px; border-left:4px solid #856404;">Scheduled / In Progress</div>`;
+    }
+    
+    html += `
+      <div style="background:#f8f9fa; padding:14px; border-radius:8px; box-sizing:border-box; width:100%; display:flex; flex-direction:column; gap:8px;">
+        <div style="font-weight:bold; font-size:13px; color:#444; border-bottom:1px solid #e9ecef; padding-bottom:6px; margin-bottom:4px;">📋 ${t.predBy}:</div>
+    `;
+    
+    const matchKey = findMatchPredictionsKey(match.team1, match.team2);
+    let totalPredsCount = 0;
+    
+    for (const pName in allParticipants) {
+      const userPreds = allParticipants[pName];
+      const predH = userPreds[`${matchKey}_home`];
+      const predA = userPreds[`${matchKey}_away`];
+      
+      if (predH !== undefined && predA !== undefined) {
+        totalPredsCount++;
+        let calculationText = '';
+        if (isFinished) {
+          const points = calculateGroupPoints(predH, predA, actH, actA);
+          calculationText = ` ➡️ <span style="color:#007bff; font-weight:bold;">(${points} pts)</span>`;
+        }
+        
+        html += `
+          <div style="display:flex; justify-content:space-between; font-size:14px; padding:4px 0; border-bottom:1px dashed #e9ecef; color:#333;">
+            <span style="font-weight:500;">${pName}</span>
+            <span>${predH} - ${predA}${calculationText}</span>
+          </div>
+        `;
+      }
+    }
+    
+    if (totalPredsCount === 0) {
+      html += `<div style="font-size:13px; color:#999; font-style:italic; padding:5px 0;">Geen voorspellingen ingevuld voor deze wedstrijd.</div>`;
+    }
+    
+    html += `</div></div>`;
+  });
+  
+  container.innerHTML = html;
+}
+
+function calculateGroupPoints(predHome, predAway, actualHome, actualAway) {
+  const pH = parseInt(predHome);
+  const pA = parseInt(predAway);
+  const aH = parseInt(actualHome);
+  const aA = parseInt(actualAway);
+  
+  if (isNaN(pH) || isNaN(pA) || isNaN(aH) || isNaN(aA)) return 0;
+  if (pH === aH && pA === aA) return 5; 
+  if (Math.sign(pH - pA) === Math.sign(aH - aA)) return 2; 
+  return 0; 
+}
+
+async function renderLeaderboard() {
+  const container = document.getElementById('container-leaderboard');
+  if (!container) return;
+  const t = translations[currentLang];
+  container.innerHTML = `<p>${t.loading}</p>`;
+  
+  const apiData = await fetchWorldCupData();
+  const poolData = await fetchAllDatabasePredictions();
+  
+  if (!apiData || !poolData) {
+    container.innerHTML = '<p>Error loading leaderboard.</p>';
+    return;
+  }
+  
+  let scoreboard = [];
+  const finalTopScorer = "PorDefinir";
+  const finalMostCards = "PorDefinir";
+  const finalMostOwnGoals = "PorDefinir";
+  const finalFirstGoalMinute = 14; 
+  
+  for (const user in poolData) {
+    const preds = poolData[user];
+    let totalScore = 0;
+    
+    apiData.matches.forEach(match => {
+      if (!match.score || !match.score.ft) return;
+      const actH = match.score.ft[0];
+      const actA = match.score.ft[1];
+      const winner = actH > actA ? match.team1 : (actA > actH ? match.team2 : 'Draw');
+      
+      if (!match.round.includes("Round") && !match.round.includes("Quarter") && !match.round.includes("Semi") && !match.round.includes("Final")) {
+        const matchKey = findMatchPredictionsKey(match.team1, match.team2);
+        if (matchKey && preds[`${matchKey}_home`] !== undefined) {
+          totalScore += calculateGroupPoints(preds[`${matchKey}_home`], preds[`${matchKey}_away`], actH, actA);
+        }
+      } else {
+        let advancedTargetTeam = winner; 
+        if (winner === 'Draw' && match.score.p) {
+          advancedTargetTeam = match.score.p[0] > match.score.p[1] ? match.team1 : match.team2;
+        }
+        
+        let roundBonusAdded = false;
+        if (match.round === "Round of 32" && verifyAdvancementSelection(preds, 'r32', advancedTargetTeam)) {
+          totalScore += 3; roundBonusAdded = true;
+        } else if (match.round === "Round of 16" && verifyAdvancementSelection(preds, 'r16', advancedTargetTeam)) {
+          totalScore += 5; roundBonusAdded = true;
+        } else if (match.round === "Quarter-final" && verifyAdvancementSelection(preds, 'qf', advancedTargetTeam)) {
+          totalScore += 8; roundBonusAdded = true;
+        } else if (match.round === "Semi-final" && verifyAdvancementSelection(preds, 'sf', advancedTargetTeam)) {
+          totalScore += 12; roundBonusAdded = true;
+        } else if (match.round === "Final" && verifyAdvancementSelection(preds, 'f', advancedTargetTeam)) {
+          totalScore += 20; roundBonusAdded = true;
+        }
+        
+        if (roundBonusAdded) {
+          const userMethodSelection = preds[`match_${match.num}_method`];
+          let actualMethod = 'koWin1'; 
+          const diff = Math.abs(actH - actA);
+          if (match.score.p) actualMethod = 'koWinPen';
+          else if (diff === 2) actualMethod = 'koWin2';
+          else if (diff >= 3) actualMethod = 'koWin3';
+          
+          if (userMethodSelection === actualMethod) {
+            totalScore += 3;
+          }
+        }
+      }
+    });
+    
+    if (preds['bq1'] === finalTopScorer) totalScore += 15;
+    if (preds['bq2'] === finalMostCards) totalScore += 10;
+    if (preds['bq3'] === finalMostOwnGoals) totalScore += 10;
+    
+    if (preds['bq4'] !== undefined) {
+      const guessedMin = parseInt(preds['bq4']);
+      if (guessedMin === finalFirstGoalMinute) totalScore += 15;
+      else if (Math.abs(guessedMin - finalFirstGoalMinute) <= 3) totalScore += 5;
+    }
+    
+    scoreboard.push({ name: user, score: totalScore });
+  }
+  
+  scoreboard.sort((a, b) => b.score - a.score);
+  
+  let html = `
+    <table style="width:100%; border-collapse: collapse; text-align: left; background:#fff; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-radius:6px; overflow:hidden;">
+      <thead>
+        <tr style="background-color: #f8f9fa; border-bottom: 2px solid #dee2e6;">
+          <th style="padding: 12px; font-weight:600;">${t.rank}</th>
+          <th style="padding: 12px; font-weight:600;">${t.participant}</th>
+          <th style="padding: 12px; font-weight:600;">${t.points}</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+  scoreboard.forEach((row, idx) => {
+    html += `
+      <tr style="border-bottom: 1px solid #dee2e6;">
+        <td style="padding: 12px;"><strong>${idx + 1}</strong></td>
+        <td style="padding: 12px;">${row.name}</td>
+        <td style="padding: 12px; color: #28a745; font-weight: bold;">${row.score} pts</td>
+      </tr>
+    `;
+  });
+  html += '</tbody></table>';
+  container.innerHTML = html;
+}
+
+function verifyAdvancementSelection(userObj, prefix, team) {
+  const normalizedTeam = team.toLowerCase().replace(/[^a-z]/g, '');
+  for (const inputId in userObj) {
+    if (inputId.includes(prefix)) {
+      const selection = String(userObj[inputId]).toLowerCase().replace(/[^a-z]/g, '');
+      if (selection === normalizedTeam) return true;
+    }
+  }
+  return false;
+}
