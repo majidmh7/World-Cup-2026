@@ -872,10 +872,10 @@ function renderKnockoutBracket(matchUps) {
         <button class="btn-primary" onclick="startBonus()" style="flex: 1; font-size: 14px;">${t.btnToBonus}</button>
     </div>`;
     
+    // Inject HTML once
     container.innerHTML = html;
-    container.innerHTML = html;
-    
-    // --- DATA RESTORE MET SLIMME MATCH ---
+
+    // --- DATA RESTORE MET UNIVERSELE VLAGGEN MATCH ---
     console.log("➡️ Startte data herstel...");
     
     rounds.forEach(round => {
@@ -885,25 +885,33 @@ function renderKnockoutBracket(matchUps) {
             const selectWinner = document.getElementById(`${matchId}_winner`);
             
             if (savedWinner && selectWinner) {
-                // We vergelijken de opgeslagen naam met de opties in de dropdown
-                // We kijken of de "vlag" (eerste deel) overeenkomt of de naam
+                // 1. Zoek de vlag (emoji) in de ruwe data op basis van de opgeslagen naam
+                let teamFlag = null;
+                for (const groupKey in rawGroups) {
+                    for (const team of rawGroups[groupKey]) {
+                        // team[1] is de vlag, bijv "🇨🇭"
+                        if (savedWinner.includes(team[1])) {
+                            teamFlag = team[1];
+                            break;
+                        }
+                    }
+                    if (teamFlag) break;
+                }
+
+                // 2. Koppel de dropdown optie met DEZELFDE vlag, ongeacht de taal
                 for (let j = 0; j < selectWinner.options.length; j++) {
-                    const optText = selectWinner.options[j].text;
                     const optVal = selectWinner.options[j].value;
                     
-                    // Vergelijking: bevat de optie de naam van het opgeslagen land?
-                    // We splitsen op de spatie om de vlag/emojis te negeren
-                    const savedName = savedWinner.split(' ').pop(); 
-                    const optName = optVal.split(' ').pop();
-                    
-                    if (optName === savedName || optVal === savedWinner) {
+                    // Als de tekst exact klopt, OF als ze dezelfde vlag delen
+                    if (optVal === savedWinner || (teamFlag && optVal.includes(teamFlag))) {
                         selectWinner.value = optVal;
-                        selectWinner.dispatchEvent(new Event('change'));
+                        selectWinner.dispatchEvent(new Event('change')); // Forceer update
                         break;
                     }
                 }
             }
 
+            // Herstel ook de doelpuntenmarge
             const savedMargin = savedDatabaseData[`${matchId}_margin`];
             const selectMargin = document.getElementById(`${matchId}_margin`);
             if (savedMargin && selectMargin) {
@@ -912,11 +920,13 @@ function renderKnockoutBracket(matchUps) {
         }
     });
 
-    // Wacht kort en update de visualisatie
+    // 3. Wacht kort en update de visualisatie
     setTimeout(() => {
         updateKnockoutOptions(); 
         if (typeof updateVisualBracket === "function") updateVisualBracket();
     }, 200);
+}
+
 //     // --- DATA RESTORE VOLGORDE ---
 //     console.log("➡️ Startte data herstel...");
     
