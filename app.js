@@ -1087,35 +1087,142 @@ async function renderTodayMatches(targetDateString) {
         <div style="font-weight:bold; font-size:13px; color:#444; border-bottom:1px solid #e9ecef; padding-bottom:6px; margin-bottom:4px;">📋 ${t.predBy}:</div>
     `;
     
-    const matchKey = findMatchPredictionsKey(match.team1, match.team2);
-    let totalPredsCount = 0;
-    
-    for (const pName in allParticipants) {
-      const userPreds = allParticipants[pName];
-      const predH = userPreds[`${matchKey}_home`];
-      const predA = userPreds[`${matchKey}_away`];
+    // --- BEPAAL FASE ---
+    const isKnockout = match.round.includes("Round") || match.round.includes("Quarter") || match.round.includes("Semi") || match.round.includes("Final");
+
+    if (!isKnockout) {
+      // ==========================================
+      // GROEPSFASE LOGICA (Je originele code)
+      // ==========================================
+      const matchKey = findMatchPredictionsKey(match.team1, match.team2);
+      let totalPredsCount = 0;
       
-      if (predH !== undefined && predA !== undefined) {
-        totalPredsCount++;
-        let calculationText = '';
-        if (isFinished) {
-          const points = calculateGroupPoints(predH, predA, actH, actA);
-          calculationText = ` ➡️ <span style="color:#007bff; font-weight:bold;">(${points} pts)</span>`;
-        }
+      for (const pName in allParticipants) {
+        const userPreds = allParticipants[pName];
+        const predH = userPreds[`${matchKey}_home`];
+        const predA = userPreds[`${matchKey}_away`];
         
-        html += `
-          <div style="display:flex; justify-content:space-between; font-size:14px; padding:4px 0; border-bottom:1px dashed #e9ecef; color:#333;">
-            <span style="font-weight:500;">${pName}</span>
-            <span>${predH} - ${predA}${calculationText}</span>
-          </div>
-        `;
+        if (predH !== undefined && predA !== undefined) {
+          totalPredsCount++;
+          let calculationText = '';
+          if (isFinished) {
+            const points = calculateGroupPoints(predH, predA, actH, actA);
+            calculationText = ` ➡️ <span style="color:#007bff; font-weight:bold;">(${points} pts)</span>`;
+          }
+          
+          html += `
+            <div style="display:flex; justify-content:space-between; font-size:14px; padding:4px 0; border-bottom:1px dashed #e9ecef; color:#333;">
+              <span style="font-weight:500;">${pName}</span>
+              <span>${predH} - ${predA}${calculationText}</span>
+            </div>
+          `;
+        }
+      }
+      
+      if (totalPredsCount === 0) {
+        html += `<div style="font-size:13px; color:#999; font-style:italic; padding:5px 0;">Geen voorspellingen ingevuld voor deze wedstrijd.</div>`;
+      }
+      
+    } else {
+      // ==========================================
+      // KNOCKOUT FASE LOGICA (Nieuw)
+      // ==========================================
+      let roundPrefix = "";
+      let basePoints = 0;
+      if (match.round === "Round of 32") { roundPrefix = "R32"; basePoints = 3; }
+      else if (match.round === "Round of 16") { roundPrefix = "R16"; basePoints = 5; }
+      else if (match.round === "Quarter-final") { roundPrefix = "QF"; basePoints = 8; }
+      else if (match.round === "Semi-final") { roundPrefix = "SF"; basePoints = 12; }
+      else if (match.round === "Final") { roundPrefix = "F"; basePoints = 20; }
+
+      const normT1 = match.team1.toLowerCase().replace(/[^a-z]/g, '');
+      const normT2 = match.team2.toLowerCase().replace(/[^a-z]/g, '');
+
+      // Voor als de match is afgelopen: bereken de échte winnaar en marge
+      let normActualWinner = null;
+      let actualMethodVal = null;
+      
+      if (isFinished) {
+          const winner = actH > actA ? match.team1 : (actA > actH ? match.team2 : 'Draw');
+          let advancedTargetTeam = winner;
+          if (winner === 'Draw' && match.score.p) {
+              advancedTargetTeam = match.score.p[0] > match.score.p[1] ? match.team1 : match.team2;
+          }
+          normActualWinner = advancedTargetTeam.toLowerCase().replace(/[^a-z]/g, '');
+
+          const diff = Math.abs(actH - actA);
+          actualMethodVal = '1';
+          if (match.score.p) actualMethodVal = 'pen';
+          else if (diff === 2) actualMethodVal = '2';
+          else if (diff >= 3) actualMethodVal = '3';
+      }
+
+      let matchPredictionsList = [];
+
+      for (const pName in allParticipants) {
+          const preds = allParticipants[pName];
+          let userPicksForThisMatch = [];
+          let pointsEarned = 0;
+          let userHasSkinInGame = false;
+
+          for (const key in preds) {
+              if (key.startsWith(roundPrefix + "_") && key.endsWith("_winner")) {
+                  const pickedTeamRaw = String(preds[key]);
+                  const pickedTeamNorm = pickedTeamRaw.toLowerCase().replace(/[^a-z]/g, '');
+
+                  // Heeft de speler één van de twee landen van vandaag gekozen?
+                  if (pickedTeamNorm === normT1 || pickedTeamNorm === normT2) {
+                      userHasSkinInGame = true;
+                      const matchNum = key.split('_')[1];
+                      const marginKey = `${roundPrefix}_${matchNum}_margin`;
+                      const marginVal = preds[marginKey];
+
+                      let marginText = marginVal;
+                      if (marginVal === "1") marginText = "1 goal";
+                      else if (marginVal === "2") marginText = "2 goals";
+                      else if (marginVal === "3") marginText = "3+ goals";
+                      else if (marginVal === "pen") marginText = "Penalty's";
+
+                      const cleanTeamName = pickedTeamRaw.replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, '').trim();
+
+                      // Bereken live punten als match klaar is
+                      if (isFinished) {
+                          if (pickedTeamNorm === normActualWinner) {
+                              pointsEarned += basePoints;
+                              if (marginVal === actualMethodVal) {
+                                  pointsEarned += 3; // De exact margin bonus!
+                              }
+                          }
+                      }
+                      
+                      let pickHtml = `<b>${cleanTeamName}</b> <span style="color:#6b7280; font-size: 11px;">(${marginText})</span>`;
+                      userPicksForThisMatch.push(pickHtml);
+                  }
+              }
+          }
+
+          if (userHasSkinInGame) {
+              let calculationText = '';
+              if (isFinished) {
+                  calculationText = ` ➡️ <span style="color:${pointsEarned > 0 ? '#007bff' : '#ef4444'}; font-weight:bold; margin-left:4px;">(${pointsEarned} pts)</span>`;
+              }
+
+              matchPredictionsList.push(`
+                  <div style="display:flex; justify-content:space-between; font-size:14px; padding:4px 0; border-bottom:1px dashed #e9ecef; color:#333;">
+                      <span style="font-weight:500;">${pName}</span>
+                      <span style="text-align:right;">${userPicksForThisMatch.join(' <span style="color:#9ca3af; margin:0 4px;">&</span> ')}${calculationText}</span>
+                  </div>
+              `);
+          }
+      }
+
+      if (matchPredictionsList.length > 0) {
+          html += matchPredictionsList.join('');
+      } else {
+          html += `<div style="font-size:13px; color:#999; font-style:italic; padding:5px 0;">Geen voorspellingen voor deze landen in de ${match.round}.</div>`;
       }
     }
-    
-    if (totalPredsCount === 0) {
-      html += `<div style="font-size:13px; color:#999; font-style:italic; padding:5px 0;">Geen voorspellingen ingevuld voor deze wedstrijd.</div>`;
-    }
-    
+
     html += `</div></div>`;
   });
   
