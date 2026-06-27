@@ -1348,7 +1348,6 @@ async function renderLeaderboard() {
     return;
   }
   
-  // --- NIEUW: Sla data globaal op in het geheugen voor de klik-breakdown ---
   window.currentApiData = apiData;
   window.currentPoolData = poolData;
   
@@ -1361,14 +1360,10 @@ async function renderLeaderboard() {
   for (const user in poolData) {
     const preds = poolData[user];
     let totalScore = 0;
-    console.log(preds)
-      
+    
     // Tel handmatige First Goal Bonus uit kolom D mee
     if (preds.first_goal_bonus) {
-      console.log(preds.first_goal_bonus)
-      console.log(totalScore)
       totalScore += parseInt(preds.first_goal_bonus) || 0;
-      console.log(totalScore)
     }
     
     apiData.matches.forEach(match => {
@@ -1377,49 +1372,63 @@ async function renderLeaderboard() {
       const actA = match.score.ft[1];
       const winner = actH > actA ? match.team1 : (actA > actH ? match.team2 : 'Draw');
       
-      if (!match.round.includes("Round") && !match.round.includes("Quarter") && !match.round.includes("Semi") && !match.round.includes("Final")) {
+      const isKnockout = match.round.includes("Round") || match.round.includes("Quarter") || match.round.includes("Semi") || match.round.includes("Final");
+
+      if (!isKnockout) {
+        // Groepsfase
         const matchKey = findMatchPredictionsKey(match.team1, match.team2);
         if (matchKey && preds[`${matchKey}_home`] !== undefined) {
           totalScore += calculateGroupPoints(preds[`${matchKey}_home`], preds[`${matchKey}_away`], actH, actA);
         }
       } else {
+        // Knockout Fase (Gebruikt nu dezelfde slimme aliassen!)
+        let roundPrefix = "";
+        let basePoints = 0;
+        if (match.round === "Round of 32") { roundPrefix = "R32"; basePoints = 3; }
+        else if (match.round === "Round of 16") { roundPrefix = "R16"; basePoints = 5; }
+        else if (match.round === "Quarter-final") { roundPrefix = "QF"; basePoints = 8; }
+        else if (match.round === "Semi-final") { roundPrefix = "SF"; basePoints = 12; }
+        else if (match.round === "Final") { roundPrefix = "F"; basePoints = 20; }
+
         let advancedTargetTeam = winner; 
         if (winner === 'Draw' && match.score.p) {
           advancedTargetTeam = match.score.p[0] > match.score.p[1] ? match.team1 : match.team2;
         }
-        
-        let roundBonusAdded = false;
-        if (match.round === "Round of 32" && verifyAdvancementSelection(preds, 'r32', advancedTargetTeam)) {
-          totalScore += 3; roundBonusAdded = true;
-        } else if (match.round === "Round of 16" && verifyAdvancementSelection(preds, 'r16', advancedTargetTeam)) {
-          totalScore += 5; roundBonusAdded = true;
-        } else if (match.round === "Quarter-final" && verifyAdvancementSelection(preds, 'qf', advancedTargetTeam)) {
-          totalScore += 8; roundBonusAdded = true;
-        } else if (match.round === "Semi-final" && verifyAdvancementSelection(preds, 'sf', advancedTargetTeam)) {
-          totalScore += 12; roundBonusAdded = true;
-        } else if (match.round === "Final" && verifyAdvancementSelection(preds, 'f', advancedTargetTeam)) {
-          totalScore += 20; roundBonusAdded = true;
-        }
-        
-        if (roundBonusAdded) {
-          const userMethodSelection = preds[`match_${match.num}_method`];
-          let actualMethod = 'koWin1'; 
-          const diff = Math.abs(actH - actA);
-          if (match.score.p) actualMethod = 'koWinPen';
-          else if (diff === 2) actualMethod = 'koWin2';
-          else if (diff >= 3) actualMethod = 'koWin3';
-          
-          if (userMethodSelection === actualMethod) {
-            totalScore += 3;
+
+        const diff = Math.abs(actH - actA);
+        let actualMethodVal = '1';
+        if (match.score.p) actualMethodVal = 'pen';
+        else if (diff === 2) actualMethodVal = '2';
+        else if (diff >= 3) actualMethodVal = '3';
+
+        const actualWinnerAliases = getAllTeamAliases(advancedTargetTeam);
+
+        for (const key in preds) {
+          if (key.startsWith(roundPrefix + "_") && key.endsWith("_winner")) {
+            const pickedTeamRaw = String(preds[key]);
+            const valNorm = normalizeTeamName(pickedTeamRaw);
+
+            // Als de speler de échte winnaar ergens in deze ronde had voorspeld:
+            if (actualWinnerAliases.includes(valNorm)) {
+              totalScore += basePoints;
+              
+              // Controleer op +3 Exacte Marge Bonus
+              const matchNum = key.split('_')[1];
+              const marginKey = `${roundPrefix}_${matchNum}_margin`;
+              if (preds[marginKey] === actualMethodVal) {
+                totalScore += 3;
+              }
+              break; // Winnaar gevonden, stop met zoeken in deze ronde voor dit team
+            }
           }
         }
       }
     });
     
+    // Bonusvragen
     if (preds['bq1'] === finalTopScorer) totalScore += 15;
     if (preds['bq2'] === finalMostCards) totalScore += 10;
     if (preds['bq3'] === finalMostOwnGoals) totalScore += 10;
-    
     if (preds['bq4'] !== undefined) {
       const guessedMin = parseInt(preds['bq4']);
       if (guessedMin === finalFirstGoalMinute) totalScore += 15;
@@ -1443,7 +1452,6 @@ async function renderLeaderboard() {
       <tbody>
   `;
   
-  // --- AANGEPAST: Rijen zijn nu klikbaar gemaakt met inline hover effecten ---
   scoreboard.forEach((row, idx) => {
     html += `
       <tr onclick="showParticipantBreakdown('${row.name.replace(/'/g, "\\'")}')" 
@@ -1460,18 +1468,6 @@ async function renderLeaderboard() {
   container.innerHTML = html;
 }
 
-function verifyAdvancementSelection(userObj, prefix, team) {
-  const normalizedTeam = team.toLowerCase().replace(/[^a-z]/g, '');
-  for (const inputId in userObj) {
-    if (inputId.includes(prefix)) {
-      const selection = String(userObj[inputId]).toLowerCase().replace(/[^a-z]/g, '');
-      if (selection === normalizedTeam) return true;
-    }
-  }
-  return false;
-}
-
-
 function showParticipantBreakdown(userName) {
     const apiData = window.currentApiData;
     const poolData = window.currentPoolData;
@@ -1484,7 +1480,6 @@ function showParticipantBreakdown(userName) {
     const finalMostOwnGoals = "PorDefinir";
     const finalFirstGoalMinute = 14;
 
-    // Start de HTML structuur van de pop-up modal
     let html = `
         <div style="background: white; padding: 22px; border-radius: 14px; max-width: 550px; width: 92%; max-height: 78vh; overflow-y: auto; box-shadow: 0 12px 30px rgba(0,0,0,0.25); font-family: sans-serif; position: relative; animation: poulePop 0.2s ease-out;">
             <button onclick="closePouleModal()" style="position: absolute; top: 14px; right: 16px; background: none; border: none; font-size: 22px; cursor: pointer; color: #9ca3af; font-weight: bold;">✕</button>
@@ -1502,18 +1497,18 @@ function showParticipantBreakdown(userName) {
                 <tbody>
     `;
 
-    // 1. VOEG DE EXPLICIETE KOLOM D BONUS TOE
     const firstGoalBonus = parseInt(preds.first_goal_bonus) || 0;
-    html += `
-        <tr style="background: #f0fdf4; font-weight: bold; border-bottom: 1px solid #e5e7eb;">
-            <td style="padding: 10px; color: #16a34a;">🎁 First Goal Bonus (Column D)</td>
-            <td style="padding: 10px; text-align: center;">-</td>
-            <td style="padding: 10px; text-align: center;">-</td>
-            <td style="padding: 10px; text-align: right; color: #16a34a;">+${firstGoalBonus} pts</td>
-        </tr>
-    `;
+    if (firstGoalBonus > 0) {
+        html += `
+            <tr style="background: #f0fdf4; font-weight: bold; border-bottom: 1px solid #e5e7eb;">
+                <td style="padding: 10px; color: #16a34a;">🎁 First Goal Bonus (Column D)</td>
+                <td style="padding: 10px; text-align: center;">-</td>
+                <td style="padding: 10px; text-align: center;">-</td>
+                <td style="padding: 10px; text-align: right; color: #16a34a;">+${firstGoalBonus} pts</td>
+            </tr>
+        `;
+    }
 
-    // 2. Loop door alle gespeelde/afgeronde wedstrijden uit de API
     apiData.matches.forEach(match => {
         if (!match.score || !match.score.ft) return;
         const actH = match.score.ft[0];
@@ -1524,8 +1519,9 @@ function showParticipantBreakdown(userName) {
         let predText = "-";
         let pointsEarned = 0;
 
-        // Groepsfase Wedstrijden
-        if (!match.round.includes("Round") && !match.round.includes("Quarter") && !match.round.includes("Semi") && !match.round.includes("Final")) {
+        const isKnockout = match.round.includes("Round") || match.round.includes("Quarter") || match.round.includes("Semi") || match.round.includes("Final");
+
+        if (!isKnockout) {
             const matchKey = findMatchPredictionsKey(match.team1, match.team2);
             if (matchKey && preds[`${matchKey}_home`] !== undefined) {
                 predText = `${preds[`${matchKey}_home`]} - ${preds[`${matchKey}_away`]}`;
@@ -1542,34 +1538,49 @@ function showParticipantBreakdown(userName) {
                 `;
             }
         } else {
-            // Knockout Fase Wedstrijden
+            let roundPrefix = "";
+            let basePoints = 0;
+            if (match.round === "Round of 32") { roundPrefix = "R32"; basePoints = 3; }
+            else if (match.round === "Round of 16") { roundPrefix = "R16"; basePoints = 5; }
+            else if (match.round === "Quarter-final") { roundPrefix = "QF"; basePoints = 8; }
+            else if (match.round === "Semi-final") { roundPrefix = "SF"; basePoints = 12; }
+            else if (match.round === "Final") { roundPrefix = "F"; basePoints = 20; }
+
             let advancedTargetTeam = winner; 
             if (winner === 'Draw' && match.score.p) {
                 advancedTargetTeam = match.score.p[0] > match.score.p[1] ? match.team1 : match.team2;
             }
             
+            const diff = Math.abs(actH - actA);
+            let actualMethodVal = '1';
+            if (match.score.p) actualMethodVal = 'pen';
+            else if (diff === 2) actualMethodVal = '2';
+            else if (diff >= 3) actualMethodVal = '3';
+
+            const actualWinnerAliases = getAllTeamAliases(advancedTargetTeam);
             let koPoints = 0;
-            let roundBonusAdded = false;
-            if (match.round === "Round of 32" && verifyAdvancementSelection(preds, 'r32', advancedTargetTeam)) { koPoints += 3; roundBonusAdded = true; }
-            else if (match.round === "Round of 16" && verifyAdvancementSelection(preds, 'r16', advancedTargetTeam)) { koPoints += 5; roundBonusAdded = true; }
-            else if (match.round === "Quarter-final" && verifyAdvancementSelection(preds, 'qf', advancedTargetTeam)) { koPoints += 8; roundBonusAdded = true; }
-            else if (match.round === "Semi-final" && verifyAdvancementSelection(preds, 'sf', advancedTargetTeam)) { koPoints += 12; roundBonusAdded = true; }
-            else if (match.round === "Final" && verifyAdvancementSelection(preds, 'f', advancedTargetTeam)) { koPoints += 20; roundBonusAdded = true; }
-            
             let methodPoints = 0;
             let methodText = "";
-            if (roundBonusAdded) {
-                const userMethodSelection = preds[`match_${match.num}_method`];
-                let actualMethod = 'koWin1';
-                const diff = Math.abs(actH - actA);
-                if (match.score.p) actualMethod = 'koWinPen';
-                else if (diff === 2) actualMethod = 'koWin2';
-                else if (diff >= 3) actualMethod = 'koWin3';
-                
-                if (userMethodSelection === actualMethod) {
+            let roundBonusAdded = false;
+
+            for (const key in preds) {
+              if (key.startsWith(roundPrefix + "_") && key.endsWith("_winner")) {
+                const pickedTeamRaw = String(preds[key]);
+                const valNorm = normalizeTeamName(pickedTeamRaw);
+
+                if (actualWinnerAliases.includes(valNorm)) {
+                  roundBonusAdded = true;
+                  koPoints = basePoints;
+                  
+                  const matchNum = key.split('_')[1];
+                  const marginKey = `${roundPrefix}_${matchNum}_margin`;
+                  if (preds[marginKey] === actualMethodVal) {
                     methodPoints = 3;
                     methodText = " <small style='color:#3b82f6;'>+Uitslag</small>";
+                  }
+                  break;
                 }
+              }
             }
 
             pointsEarned = koPoints + methodPoints;
@@ -1586,18 +1597,18 @@ function showParticipantBreakdown(userName) {
         }
     });
 
-    // 3. Toevoegen van de Bonusvragen als deze correct beantwoord zijn
+    // Bonusvragen
     let bonusQuestionsHtml = "";
-    if (preds['bq1'] === finalTopScorer) { bonusQuestionsHtml += `<tr style="border-bottom: 1px solid #f3f4f6; background:#fffbeb;"><td style="padding: 8px; font-weight:500;">🏆 Topscorer Voorspelling</td><td style="padding: 8px; text-align:center;">${preds['bq1']}</td><td style="padding: 8px; text-align:center;">${finalTopScorer}</td><td style="padding: 8px; text-align:right; font-weight:bold; color:#d97706;">+15 pts</td></tr>`; }
-    if (preds['bq2'] === finalMostCards) { bonusQuestionsHtml += `<tr style="border-bottom: 1px solid #f3f4f6; background:#fffbeb;"><td style="padding: 8px; font-weight:500;">🟨 Meeste Kaarten Voorspelling</td><td style="padding: 8px; text-align:center;">${preds['bq2']}</td><td style="padding: 8px; text-align:center;">${finalMostCards}</td><td style="padding: 8px; text-align:right; font-weight:bold; color:#d97706;">+10 pts</td></tr>`; }
-    if (preds['bq3'] === finalMostOwnGoals) { bonusQuestionsHtml += `<tr style="border-bottom: 1px solid #f3f4f6; background:#fffbeb;"><td style="padding: 8px; font-weight:500;">⚽ Eigen Doelpunten Voorspelling</td><td style="padding: 8px; text-align:center;">${preds['bq3']}</td><td style="padding: 8px; text-align:center;">${finalMostOwnGoals}</td><td style="padding: 8px; text-align:right; font-weight:bold; color:#d97706;">+10 pts</td></tr>`; }
+    if (preds['bq1'] === finalTopScorer) { bonusQuestionsHtml += `<tr style="border-bottom: 1px solid #f3f4f6; background:#fffbeb;"><td style="padding: 8px; font-weight:500;">🏆 Topscorer</td><td style="padding: 8px; text-align:center;">${preds['bq1']}</td><td style="padding: 8px; text-align:center;">${finalTopScorer}</td><td style="padding: 8px; text-align:right; font-weight:bold; color:#d97706;">+15 pts</td></tr>`; }
+    if (preds['bq2'] === finalMostCards) { bonusQuestionsHtml += `<tr style="border-bottom: 1px solid #f3f4f6; background:#fffbeb;"><td style="padding: 8px; font-weight:500;">🟨 Meeste Kaarten</td><td style="padding: 8px; text-align:center;">${preds['bq2']}</td><td style="padding: 8px; text-align:center;">${finalMostCards}</td><td style="padding: 8px; text-align:right; font-weight:bold; color:#d97706;">+10 pts</td></tr>`; }
+    if (preds['bq3'] === finalMostOwnGoals) { bonusQuestionsHtml += `<tr style="border-bottom: 1px solid #f3f4f6; background:#fffbeb;"><td style="padding: 8px; font-weight:500;">⚽ Eigen Doelpunten</td><td style="padding: 8px; text-align:center;">${preds['bq3']}</td><td style="padding: 8px; text-align:center;">${finalMostOwnGoals}</td><td style="padding: 8px; text-align:right; font-weight:bold; color:#d97706;">+10 pts</td></tr>`; }
     
     if (preds['bq4'] !== undefined) {
         const guessedMin = parseInt(preds['bq4']);
         if (guessedMin === finalFirstGoalMinute) {
-            bonusQuestionsHtml += `<tr style="border-bottom: 1px solid #f3f4f6; background:#fffbeb;"><td style="padding: 8px; font-weight:500;">⏱ Minuut Eerste Doelpunt</td><td style="padding: 8px; text-align:center;">${guessedMin}'</td><td style="padding: 8px; text-align:center;">${finalFirstGoalMinute}'</td><td style="padding: 8px; text-align:right; font-weight:bold; color:#d97706;">+15 pts</td></tr>`;
+            bonusQuestionsHtml += `<tr style="border-bottom: 1px solid #f3f4f6; background:#fffbeb;"><td style="padding: 8px; font-weight:500;">⏱ Minuut 1e Goal</td><td style="padding: 8px; text-align:center;">${guessedMin}'</td><td style="padding: 8px; text-align:center;">${finalFirstGoalMinute}'</td><td style="padding: 8px; text-align:right; font-weight:bold; color:#d97706;">+15 pts</td></tr>`;
         } else if (Math.abs(guessedMin - finalFirstGoalMinute) <= 3) {
-            bonusQuestionsHtml += `<tr style="border-bottom: 1px solid #f3f4f6; background:#fffbeb;"><td style="padding: 8px; font-weight:500;">⏱ Minuut Eerste Doelpunt (In de buurt)</td><td style="padding: 8px; text-align:center;">${guessedMin}'</td><td style="padding: 8px; text-align:center;">${finalFirstGoalMinute}'</td><td style="padding: 8px; text-align:right; font-weight:bold; color:#d97706;">+5 pts</td></tr>`;
+            bonusQuestionsHtml += `<tr style="border-bottom: 1px solid #f3f4f6; background:#fffbeb;"><td style="padding: 8px; font-weight:500;">⏱ Minuut 1e Goal (In de buurt)</td><td style="padding: 8px; text-align:center;">${guessedMin}'</td><td style="padding: 8px; text-align:center;">${finalFirstGoalMinute}'</td><td style="padding: 8px; text-align:right; font-weight:bold; color:#d97706;">+5 pts</td></tr>`;
         }
     }
     html += bonusQuestionsHtml;
@@ -1611,7 +1622,6 @@ function showParticipantBreakdown(userName) {
         </style>
     `;
 
-    // Bouw de semi-transparante verduisteringslaag op het scherm
     let modalOverlay = document.getElementById('poule-modal-overlay');
     if (!modalOverlay) {
         modalOverlay = document.createElement('div');
@@ -1628,7 +1638,6 @@ function showParticipantBreakdown(userName) {
         modalOverlay.style.alignItems = 'center';
         modalOverlay.style.zIndex = '99999';
         
-        // Sluit pop-up als de gebruiker buiten het witte vlak klikt
         modalOverlay.onclick = function(e) { if(e.target === modalOverlay) closePouleModal(); };
         document.body.appendChild(modalOverlay);
     }
