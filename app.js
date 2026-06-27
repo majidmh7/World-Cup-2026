@@ -1125,7 +1125,7 @@ async function renderTodayMatches(targetDateString) {
       
     } else {
       // ==========================================
-      // KNOCKOUT FASE LOGICA (Nieuw & Robuust)
+      // KNOCKOUT FASE LOGICA (Nieuw & Brute-Force)
       // ==========================================
       let roundPrefix = "";
       let basePoints = 0;
@@ -1135,36 +1135,51 @@ async function renderTodayMatches(targetDateString) {
       else if (match.round === "Semi-final") { roundPrefix = "SF"; basePoints = 12; }
       else if (match.round === "Final") { roundPrefix = "F"; basePoints = 20; }
 
-      // --- DE ULTIEME NORMALISATIE FUNCTIE ---
       // Verwijdert accenten, emoji's, spaties, streepjes en maakt er kleine letters van.
       const normalizeTeamName = (str) => {
           if (!str) return "";
-          return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z]/g, "");
+          return String(str).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z]/g, "");
       };
 
-      // 🔍 TROUBLESHOOTING LOGS (Groepeert netjes in de console)
-      console.groupCollapsed(`🔍 Analyseer Match: ${match.team1} vs ${match.team2} (${roundPrefix})`);
-      const normT1_EN = normalizeTeamName(match.team1);
-      const normT1_NL = normalizeTeamName(translations['nl'][match.team1] || match.team1);
-      const normT1_ES = normalizeTeamName(translations['es'][match.team1] || match.team1);
-      
-      const normT2_EN = normalizeTeamName(match.team2);
-      const normT2_NL = normalizeTeamName(translations['nl'][match.team2] || match.team2);
-      const normT2_ES = normalizeTeamName(translations['es'][match.team2] || match.team2);
-      
-      console.log(`Verwachte formaten voor T1 (${match.team1}): EN="${normT1_EN}", NL="${normT1_NL}", ES="${normT1_ES}"`);
-      console.log(`Verwachte formaten voor T2 (${match.team2}): EN="${normT2_EN}", NL="${normT2_NL}", ES="${normT2_ES}"`);
+      // 🚨 DE "BLOODHOUND" FUNCTIE 🚨
+      // Omdat vertaalsleutels soms afwijken (bijv. "South_Africa" vs "South Africa"), 
+      // zoekt deze functie het hele woordenboek af naar alle mogelijke alias-namen.
+      function getAllTeamAliases(apiTeamName) {
+          const aliases = new Set();
+          const targetKey = normalizeTeamName(apiTeamName);
+          aliases.add(targetKey); // Voeg altijd de basis Engelse naam toe
 
-      function isTeamMatch(savedValue, team1Flag, team2Flag) {
+          for (const lang in translations) {
+              if (translations[lang]) {
+                  // Directe match proberen (als de sleutel wél exact klopt)
+                  if (translations[lang][apiTeamName]) {
+                      aliases.add(normalizeTeamName(translations[lang][apiTeamName]));
+                  }
+                  // Brute-force: check álle sleutels in deze taal
+                  for (const dictKey in translations[lang]) {
+                      if (normalizeTeamName(dictKey) === targetKey) {
+                          aliases.add(normalizeTeamName(translations[lang][dictKey]));
+                      }
+                  }
+              }
+          }
+          return Array.from(aliases);
+      }
+
+      console.groupCollapsed(`🔍 Analyseer Match: ${match.team1} vs ${match.team2} (${roundPrefix})`);
+      
+      const team1Aliases = getAllTeamAliases(match.team1);
+      const team2Aliases = getAllTeamAliases(match.team2);
+      
+      // LOG: Check hier straks of 'zuidafrika' netjes in de array staat!
+      console.log(`Geaccepteerde varianten T1 (${match.team1}):`, team1Aliases);
+      console.log(`Geaccepteerde varianten T2 (${match.team2}):`, team2Aliases);
+
+      function isTeamMatch(savedValue, isTeam1, isTeam2) {
           if (!savedValue) return false;
           const valNorm = normalizeTeamName(savedValue);
-          
-          if (team1Flag) {
-              return valNorm === normT1_EN || valNorm === normT1_NL || valNorm === normT1_ES;
-          }
-          if (team2Flag) {
-              return valNorm === normT2_EN || valNorm === normT2_NL || valNorm === normT2_ES;
-          }
+          if (isTeam1 && team1Aliases.includes(valNorm)) return true;
+          if (isTeam2 && team2Aliases.includes(valNorm)) return true;
           return false;
       }
 
@@ -1206,7 +1221,7 @@ async function renderTodayMatches(targetDateString) {
                       const marginKey = `${roundPrefix}_${matchNum}_margin`;
                       const marginVal = preds[marginKey];
 
-                      console.log(`✅ MATCH: ${pName} voorspelde "${pickedTeamRaw}" -> Genormaliseerd: "${normalizeTeamName(pickedTeamRaw)}"`);
+                      console.log(`✅ MATCH: ${pName} voorspelde "${pickedTeamRaw}"`);
 
                       let marginText = marginVal;
                       if (marginVal === "1") marginText = "1 goal";
@@ -1229,9 +1244,6 @@ async function renderTodayMatches(targetDateString) {
                       
                       let pickHtml = `<b>${cleanTeamName}</b> <span style="color:#6b7280; font-size: 11px;">(${marginText})</span>`;
                       userPicksForThisMatch.push(pickHtml);
-                  } else {
-                      // Optioneel: log ook de missers als je héél diep wilt graven (staat standaard uit om spam te voorkomen)
-                      // console.log(`❌ GEEN MATCH: ${pName} voorspelde "${pickedTeamRaw}" -> "${normalizeTeamName(pickedTeamRaw)}"`);
                   }
               }
           }
