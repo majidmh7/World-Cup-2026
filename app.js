@@ -16,6 +16,57 @@ const rawGroups = {
     L: [ [{nl: "Engeland", es: "Inglaterra"}, "🏴󠁧󠁢󠁥󠁮󠁧󠁿"], [{nl: "Kroatië", es: "Croacia"}, "🇭🇷"], [{nl: "Ghana", es: "Ghana"}, "🇬🇭"], [{nl: "Panama", es: "Panamá"}, "🇵🇦"] ]
 };
 
+const globalTeamTranslations = {
+    "Mexico": { nl: "Mexico", es: "México", en: "Mexico" },
+    "South Africa": { nl: "Zuid-Afrika", es: "Sudáfrica", en: "South Africa" },
+    "South Korea": { nl: "Zuid-Korea", es: "Corea del Sur", en: "South Korea" },
+    "Czech Republic": { nl: "Tsjechië", es: "Rep. Checa", en: "Czech Republic" },
+    "Canada": { nl: "Canada", es: "Canadá", en: "Canada" },
+    "Bosnia & Herzegovina": { nl: "Bosnië & Herz.", es: "Bosnia y Herz.", en: "Bosnia & Herzegovina" },
+    "Qatar": { nl: "Qatar", es: "Catar", en: "Qatar" },
+    "Switzerland": { nl: "Zwitserland", es: "Suiza", en: "Switzerland" },
+    "Brazil": { nl: "Brazilië", es: "Brasil", en: "Brazil" },
+    "Morocco": { nl: "Marokko", es: "Marruecos", en: "Morocco" },
+    "Haiti": { nl: "Haïti", es: "Haití", en: "Haiti" },
+    "Scotland": { nl: "Schotland", es: "Escocia", en: "Scotland" },
+    "United States": { nl: "Verenigde Staten", es: "Estados Unidos", en: "United States" },
+    "Paraguay": { nl: "Paraguay", es: "Paraguay", en: "Paraguay" },
+    "Australia": { nl: "Australië", es: "Australia", en: "Australia" },
+    "Turkey": { nl: "Turkije", es: "Turquía", en: "Turkey" },
+    "Germany": { nl: "Duitsland", es: "Alemania", en: "Germany" },
+    "Curaçao": { nl: "Curaçao", es: "Curazao", en: "Curaçao" },
+    "Ivory Coast": { nl: "Ivoorkust", es: "Costa de Marfil", en: "Ivory Coast" },
+    "Ecuador": { nl: "Ecuador", es: "Ecuador", en: "Ecuador" },
+    "Netherlands": { nl: "Nederland", es: "Países Bajos", en: "Netherlands" },
+    "Japan": { nl: "Japan", es: "Japón", en: "Japan" },
+    "Sweden": { nl: "Zweden", es: "Suecia", en: "Sweden" },
+    "Tunisia": { nl: "Tunesië", es: "Túnez", en: "Tunisia" },
+    "Belgium": { nl: "België", es: "Bélgica", en: "Belgium" },
+    "Egypt": { nl: "Egypte", es: "Egipto", en: "Egypt" },
+    "Iran": { nl: "Iran", es: "Irán", en: "Iran" },
+    "New Zealand": { nl: "Nieuw-Zeeland", es: "Nueva Zelanda", en: "New Zealand" },
+    "Spain": { nl: "Spanje", es: "España", en: "Spain" },
+    "Cape Verde": { nl: "Kaapverdië", es: "Cabo Verde", en: "Cape Verde" },
+    "Saudi Arabia": { nl: "Saoedi-Arabië", es: "Arabia Saudita", en: "Saudi Arabia" },
+    "Uruguay": { nl: "Uruguay", es: "Uruguay", en: "Uruguay" },
+    "France": { nl: "Frankrijk", es: "Francia", en: "France" },
+    "Senegal": { nl: "Senegal", es: "Senegal", en: "Senegal" },
+    "Iraq": { nl: "Irak", es: "Irak", en: "Iraq" },
+    "Norway": { nl: "Noorwegen", es: "Noruega", en: "Norway" },
+    "Argentina": { nl: "Argentinië", es: "Argentina", en: "Argentina" },
+    "Algeria": { nl: "Algerije", es: "Argelia", en: "Algeria" },
+    "Austria": { nl: "Oostenrijk", es: "Austria", en: "Austria" },
+    "Jordan": { nl: "Jordanië", es: "Jordania", en: "Jordan" },
+    "Portugal": { nl: "Portugal", es: "Portugal", en: "Portugal" },
+    "DR Congo": { nl: "DR Congo", es: "RD Congo", en: "DR Congo" },
+    "Uzbekistan": { nl: "Oezbekistan", es: "Uzbekistán", en: "Uzbekistan" },
+    "Colombia": { nl: "Colombia", es: "Colombia", en: "Colombia" },
+    "England": { nl: "Engeland", es: "Inglaterra", en: "England" },
+    "Croatia": { nl: "Kroatië", es: "Croacia", en: "Croatia" },
+    "Ghana": { nl: "Ghana", es: "Ghana", en: "Ghana" },
+    "Panama": { nl: "Panama", es: "Panamá", en: "Panama" }
+};
+
 // =========================================================================
 // 2. GLOBAL MUTABLE STATE CONTAINERS
 // =========================================================================
@@ -1144,25 +1195,18 @@ async function renderTodayMatches(targetDateString) {
       // 🚨 DE "BLOODHOUND" FUNCTIE 🚨
       // Omdat vertaalsleutels soms afwijken (bijv. "South_Africa" vs "South Africa"), 
       // zoekt deze functie het hele woordenboek af naar alle mogelijke alias-namen.
+      // 🚨 DE "BLOODHOUND" FUNCTIE (Nu super efficiënt dankzij jouw data!) 🚨
       function getAllTeamAliases(apiTeamName) {
           const aliases = new Set();
-          const targetKey = normalizeTeamName(apiTeamName);
-          aliases.add(targetKey); // Voeg altijd de basis Engelse naam toe
+          aliases.add(normalizeTeamName(apiTeamName)); // Voeg standaard de Engelse naam toe
 
-          for (const lang in translations) {
-              if (translations[lang]) {
-                  // Directe match proberen (als de sleutel wél exact klopt)
-                  if (translations[lang][apiTeamName]) {
-                      aliases.add(normalizeTeamName(translations[lang][apiTeamName]));
-                  }
-                  // Brute-force: check álle sleutels in deze taal
-                  for (const dictKey in translations[lang]) {
-                      if (normalizeTeamName(dictKey) === targetKey) {
-                          aliases.add(normalizeTeamName(translations[lang][dictKey]));
-                      }
-                  }
-              }
+          // Kijk direct in jouw eigen vertaalwoordenboek!
+          if (globalTeamTranslations[apiTeamName]) {
+              const team = globalTeamTranslations[apiTeamName];
+              if (team.nl) aliases.add(normalizeTeamName(team.nl));
+              if (team.es) aliases.add(normalizeTeamName(team.es));
           }
+
           return Array.from(aliases);
       }
 
