@@ -1135,20 +1135,29 @@ async function renderTodayMatches(targetDateString) {
       else if (match.round === "Semi-final") { roundPrefix = "SF"; basePoints = 12; }
       else if (match.round === "Final") { roundPrefix = "F"; basePoints = 20; }
 
-      const normT1 = match.team1.toLowerCase().replace(/[^a-z]/g, '');
-      const normT2 = match.team2.toLowerCase().replace(/[^a-z]/g, '');
+      // --- NIEUWE ROBUUSTE TAAL- EN ACCENT CHECKER ---
+      const stripAccents = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
+      function isTeamMatch(savedValue, apiTeamName) {
+          if (!savedValue) return false;
+          const val = stripAccents(savedValue);
+          const nameEN = stripAccents(apiTeamName);
+          const nameNL = stripAccents(translations['nl'][apiTeamName] || apiTeamName);
+          const nameES = stripAccents(translations['es'][apiTeamName] || apiTeamName);
+          
+          return val.includes(nameEN) || val.includes(nameNL) || val.includes(nameES);
+      }
 
       // Voor als de match is afgelopen: bereken de échte winnaar en marge
-      let normActualWinner = null;
+      let actualWinnerAPI = null;
       let actualMethodVal = null;
       
       if (isFinished) {
           const winner = actH > actA ? match.team1 : (actA > actH ? match.team2 : 'Draw');
-          let advancedTargetTeam = winner;
+          actualWinnerAPI = winner;
           if (winner === 'Draw' && match.score.p) {
-              advancedTargetTeam = match.score.p[0] > match.score.p[1] ? match.team1 : match.team2;
+              actualWinnerAPI = match.score.p[0] > match.score.p[1] ? match.team1 : match.team2;
           }
-          normActualWinner = advancedTargetTeam.toLowerCase().replace(/[^a-z]/g, '');
 
           const diff = Math.abs(actH - actA);
           actualMethodVal = '1';
@@ -1168,10 +1177,9 @@ async function renderTodayMatches(targetDateString) {
           for (const key in preds) {
               if (key.startsWith(roundPrefix + "_") && key.endsWith("_winner")) {
                   const pickedTeamRaw = String(preds[key]);
-                  const pickedTeamNorm = pickedTeamRaw.toLowerCase().replace(/[^a-z]/g, '');
 
-                  // Heeft de speler één van de twee landen van vandaag gekozen?
-                  if (pickedTeamNorm === normT1 || pickedTeamNorm === normT2) {
+                  // CHECK: Heeft de speler één van de twee landen gekozen als WINNAAR? (Ongeacht taal/accent)
+                  if (isTeamMatch(pickedTeamRaw, match.team1) || isTeamMatch(pickedTeamRaw, match.team2)) {
                       userHasSkinInGame = true;
                       const matchNum = key.split('_')[1];
                       const marginKey = `${roundPrefix}_${matchNum}_margin`;
@@ -1187,10 +1195,10 @@ async function renderTodayMatches(targetDateString) {
 
                       // Bereken live punten als match klaar is
                       if (isFinished) {
-                          if (pickedTeamNorm === normActualWinner) {
+                          if (isTeamMatch(pickedTeamRaw, actualWinnerAPI)) {
                               pointsEarned += basePoints;
                               if (marginVal === actualMethodVal) {
-                                  pointsEarned += 3; // De exact margin bonus!
+                                  pointsEarned += 3; // Exact margin bonus
                               }
                           }
                       }
