@@ -1125,7 +1125,7 @@ async function renderTodayMatches(targetDateString) {
       
     } else {
       // ==========================================
-      // KNOCKOUT FASE LOGICA (Nieuw)
+      // KNOCKOUT FASE LOGICA (Nieuw & Robuust)
       // ==========================================
       let roundPrefix = "";
       let basePoints = 0;
@@ -1135,17 +1135,37 @@ async function renderTodayMatches(targetDateString) {
       else if (match.round === "Semi-final") { roundPrefix = "SF"; basePoints = 12; }
       else if (match.round === "Final") { roundPrefix = "F"; basePoints = 20; }
 
-      // --- NIEUWE ROBUUSTE TAAL- EN ACCENT CHECKER ---
-      const stripAccents = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+      // --- DE ULTIEME NORMALISATIE FUNCTIE ---
+      // Verwijdert accenten, emoji's, spaties, streepjes en maakt er kleine letters van.
+      const normalizeTeamName = (str) => {
+          if (!str) return "";
+          return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z]/g, "");
+      };
 
-      function isTeamMatch(savedValue, apiTeamName) {
+      // 🔍 TROUBLESHOOTING LOGS (Groepeert netjes in de console)
+      console.groupCollapsed(`🔍 Analyseer Match: ${match.team1} vs ${match.team2} (${roundPrefix})`);
+      const normT1_EN = normalizeTeamName(match.team1);
+      const normT1_NL = normalizeTeamName(translations['nl'][match.team1] || match.team1);
+      const normT1_ES = normalizeTeamName(translations['es'][match.team1] || match.team1);
+      
+      const normT2_EN = normalizeTeamName(match.team2);
+      const normT2_NL = normalizeTeamName(translations['nl'][match.team2] || match.team2);
+      const normT2_ES = normalizeTeamName(translations['es'][match.team2] || match.team2);
+      
+      console.log(`Verwachte formaten voor T1 (${match.team1}): EN="${normT1_EN}", NL="${normT1_NL}", ES="${normT1_ES}"`);
+      console.log(`Verwachte formaten voor T2 (${match.team2}): EN="${normT2_EN}", NL="${normT2_NL}", ES="${normT2_ES}"`);
+
+      function isTeamMatch(savedValue, team1Flag, team2Flag) {
           if (!savedValue) return false;
-          const val = stripAccents(savedValue);
-          const nameEN = stripAccents(apiTeamName);
-          const nameNL = stripAccents(translations['nl'][apiTeamName] || apiTeamName);
-          const nameES = stripAccents(translations['es'][apiTeamName] || apiTeamName);
+          const valNorm = normalizeTeamName(savedValue);
           
-          return val.includes(nameEN) || val.includes(nameNL) || val.includes(nameES);
+          if (team1Flag) {
+              return valNorm === normT1_EN || valNorm === normT1_NL || valNorm === normT1_ES;
+          }
+          if (team2Flag) {
+              return valNorm === normT2_EN || valNorm === normT2_NL || valNorm === normT2_ES;
+          }
+          return false;
       }
 
       // Voor als de match is afgelopen: bereken de échte winnaar en marge
@@ -1177,13 +1197,16 @@ async function renderTodayMatches(targetDateString) {
           for (const key in preds) {
               if (key.startsWith(roundPrefix + "_") && key.endsWith("_winner")) {
                   const pickedTeamRaw = String(preds[key]);
+                  const isTeam1 = isTeamMatch(pickedTeamRaw, true, false);
+                  const isTeam2 = isTeamMatch(pickedTeamRaw, false, true);
 
-                  // CHECK: Heeft de speler één van de twee landen gekozen als WINNAAR? (Ongeacht taal/accent)
-                  if (isTeamMatch(pickedTeamRaw, match.team1) || isTeamMatch(pickedTeamRaw, match.team2)) {
+                  if (isTeam1 || isTeam2) {
                       userHasSkinInGame = true;
                       const matchNum = key.split('_')[1];
                       const marginKey = `${roundPrefix}_${matchNum}_margin`;
                       const marginVal = preds[marginKey];
+
+                      console.log(`✅ MATCH: ${pName} voorspelde "${pickedTeamRaw}" -> Genormaliseerd: "${normalizeTeamName(pickedTeamRaw)}"`);
 
                       let marginText = marginVal;
                       if (marginVal === "1") marginText = "1 goal";
@@ -1195,16 +1218,20 @@ async function renderTodayMatches(targetDateString) {
 
                       // Bereken live punten als match klaar is
                       if (isFinished) {
-                          if (isTeamMatch(pickedTeamRaw, actualWinnerAPI)) {
+                          const isWinnerPick = (isTeam1 && match.team1 === actualWinnerAPI) || (isTeam2 && match.team2 === actualWinnerAPI);
+                          if (isWinnerPick) {
                               pointsEarned += basePoints;
                               if (marginVal === actualMethodVal) {
-                                  pointsEarned += 3; // Exact margin bonus
+                                  pointsEarned += 3; // Exact margin bonus!
                               }
                           }
                       }
                       
                       let pickHtml = `<b>${cleanTeamName}</b> <span style="color:#6b7280; font-size: 11px;">(${marginText})</span>`;
                       userPicksForThisMatch.push(pickHtml);
+                  } else {
+                      // Optioneel: log ook de missers als je héél diep wilt graven (staat standaard uit om spam te voorkomen)
+                      // console.log(`❌ GEEN MATCH: ${pName} voorspelde "${pickedTeamRaw}" -> "${normalizeTeamName(pickedTeamRaw)}"`);
                   }
               }
           }
@@ -1223,6 +1250,8 @@ async function renderTodayMatches(targetDateString) {
               `);
           }
       }
+
+      console.groupEnd(); // Sluit de troubleshooting log voor deze wedstrijd
 
       if (matchPredictionsList.length > 0) {
           html += matchPredictionsList.join('');
