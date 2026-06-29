@@ -67,6 +67,29 @@ const globalTeamTranslations = {
     "Panama": { nl: "Panama", es: "Panamá", en: "Panama" }
 };
 
+// --- GLOBAL HELPER FUNCTIONS ---
+
+// Removes accents, emojis, spaces, and dashes, converting to lowercase
+const normalizeTeamName = (str) => {
+    if (!str) return "";
+    return String(str).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z]/g, "");
+};
+
+// The "Bloodhound" function: fetches all language aliases for a team
+function getAllTeamAliases(apiTeamName) {
+    const aliases = new Set();
+    aliases.add(normalizeTeamName(apiTeamName)); // Always add the base English name
+
+    // Look directly into the global translation dictionary
+    if (globalTeamTranslations[apiTeamName]) {
+        const team = globalTeamTranslations[apiTeamName];
+        if (team.nl) aliases.add(normalizeTeamName(team.nl));
+        if (team.es) aliases.add(normalizeTeamName(team.es));
+    }
+
+    return Array.from(aliases);
+}
+
 // =========================================================================
 // 2. GLOBAL MUTABLE STATE CONTAINERS
 // =========================================================================
