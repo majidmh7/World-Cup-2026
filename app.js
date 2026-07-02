@@ -1134,8 +1134,14 @@ async function renderTodayMatches(targetDateString) {
   
   selectedMatches.forEach(match => {
     const isFinished = match.score && match.score.ft;
-    const actH = isFinished ? match.score.ft[0] : null;
-    const actA = isFinished ? match.score.ft[1] : null;
+    let actH = isFinished ? match.score.ft[0] : null;
+    let actA = isFinished ? match.score.ft[1] : null;
+    
+    // OVERRIDE: If Extra Time was played, update the scores for the UI and calculations!
+    if (isFinished && match.score.et) {
+        actH = match.score.et[0];
+        actA = match.score.et[1];
+    }
     
     html += `
       <div style="background:#ffffff; border:1px solid #e0e0e0; border-radius:12px; padding:16px; margin-bottom:20px; box-sizing:border-box; width:100%; display:flex; flex-direction:column; clear:both; text-align:left; font-family:sans-serif; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
