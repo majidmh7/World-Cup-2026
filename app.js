@@ -1391,8 +1391,16 @@ async function renderLeaderboard() {
     
     apiData.matches.forEach(match => {
       if (!match.score || !match.score.ft) return;
-      const actH = match.score.ft[0];
-      const actA = match.score.ft[1];
+      // Start with the Full Time score
+      let actH = match.score.ft[0];
+      let actA = match.score.ft[1];
+      
+      // OVERRIDE: If Extra Time was played, use the Extra Time score instead!
+      if (match.score.et) {
+          actH = match.score.et[0];
+          actA = match.score.et[1];
+      }
+      
       const winner = actH > actA ? match.team1 : (actA > actH ? match.team2 : 'Draw');
       
       const isKnockout = match.round.includes("Round") || match.round.includes("Quarter") || match.round.includes("Semi") || match.round.includes("Final");
@@ -1534,8 +1542,16 @@ function showParticipantBreakdown(userName) {
 
     apiData.matches.forEach(match => {
         if (!match.score || !match.score.ft) return;
-        const actH = match.score.ft[0];
-        const actA = match.score.ft[1];
+        // Start with the Full Time score
+        let actH = match.score.ft[0];
+        let actA = match.score.ft[1];
+          
+        // OVERRIDE: If Extra Time was played, use the Extra Time score instead!
+        if (match.score.et) {
+            actH = match.score.et[0];
+            actA = match.score.et[1];
+        }
+          
         const winner = actH > actA ? match.team1 : (actA > actH ? match.team2 : 'Draw');
         const matchName = `${getLocalTeamName(match.team1)} - ${getLocalTeamName(match.team2)}`;
         
