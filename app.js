@@ -1151,6 +1151,7 @@ async function renderTodayMatches(targetDateString) {
   }
   
   const allParticipants = await fetchAllDatabasePredictions();
+  console.log(allParticipants)
   let html = '';
 
   console.log(selectedMatches)
@@ -1217,6 +1218,7 @@ async function renderTodayMatches(targetDateString) {
       
       for (const pName in allParticipants) {
         const preds = allParticipants[pName];
+        console.log(preds)
         // Check alle mogelijke hoofdletter-variaties van de kolomnaam uit Google Sheets
         const rawThirdVal = preds.third || preds.Third || preds.THIRD || preds.third_place || "";
         const thirdPick = parseThirdPlacePick(rawThirdVal);
