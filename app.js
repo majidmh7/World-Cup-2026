@@ -69,6 +69,26 @@ const globalTeamTranslations = {
 
 // --- GLOBAL HELPER FUNCTIONS ---
 
+// --- 3E PLAATS PARSER (Frankrijk vs Engeland) ---
+function parseThirdPlacePick(pickStr) {
+    if (!pickStr || pickStr === "-" || pickStr === "0-" || pickStr === "undefined") return null;
+    const clean = String(pickStr).toUpperCase().trim();
+    
+    let team = null;
+    if (clean.includes("F")) team = "F"; // Frankrijk
+    else if (clean.includes("E")) team = "E"; // Engeland
+    
+    if (!team) return null; // Zonder geldig land geen voorspelling
+    
+    let method = null;
+    if (clean.includes("P")) method = "P"; // Penalty's
+    else if (clean.includes("1")) method = "1";
+    else if (clean.includes("2")) method = "2";
+    else if (clean.includes("3") || clean.includes("4") || clean.includes("5")) method = "3"; // 3+ goals
+    
+    return { team, method, raw: clean };
+}
+
 // Removes accents, emojis, spaces, and dashes, converting to lowercase
 const normalizeTeamName = (str) => {
     if (!str) return "";
@@ -1385,6 +1405,53 @@ async function renderLeaderboard() {
   const finalMostCards = "PorDefinir";
   const finalMostOwnGoals = "PorDefinir";
   const finalFirstGoalMinute = 14; 
+
+  // -------------------------------------------------------------
+  // 🚨 3e PLAATS (FRANKRIJK - ENGELAND) RESULTAAT BEPAALDER
+  // -------------------------------------------------------------
+  // Fallback: Mocht de API de wedstrijd (nog) niet hebben, vul hier handmatig de uitslag in:
+  // Bijv. Frankrijk wint met 1 goal: { team: "F", method: "1" }
+  // Bijv. Engeland wint na penalty's: { team: "E", method: "P" }
+  let actualThirdResult = null; 
+  
+  // We zoeken automatisch in de live API of Frankrijk - Engeland is gespeeld
+  const apiThirdMatch = apiData.matches.find(m => {
+    if (!m.team1 || !m.team2) return false;
+    const t1 = normalizeTeamName(m.team1);
+    const t2 = normalizeTeamName(m.team2);
+    const isFrEn = (t1 === "france" && t2 === "england") || (t1 === "england" && t2 === "france");
+    const isThirdRound = m.round && (m.round.includes("Third") || m.round.includes("3rd") || m.round.includes("Play-off"));
+    return (isFrEn || isThirdRound) && m.score && m.score.ft;
+  });
+
+  if (apiThirdMatch) {
+    let actH = apiThirdMatch.score.ft[0];
+    let actA = apiThirdMatch.score.ft[1];
+    if (apiThirdMatch.score.et) {
+      actH = apiThirdMatch.score.et[0];
+      actA = apiThirdMatch.score.et[1];
+    }
+    
+    let winnerTeam = null;
+    const winnerName = actH > actA ? apiThirdMatch.team1 : (actA > actH ? apiThirdMatch.team2 : 'Draw');
+    if (winnerName === 'Draw' && apiThirdMatch.score.p) {
+      const penWinner = apiThirdMatch.score.p[0] > apiThirdMatch.score.p[1] ? apiThirdMatch.team1 : apiThirdMatch.team2;
+      winnerTeam = normalizeTeamName(penWinner) === "france" ? "F" : "E";
+    } else {
+      winnerTeam = normalizeTeamName(winnerName) === "france" ? "F" : "E";
+    }
+    
+    const diff = Math.abs(actH - actA);
+    let method = "1";
+    if (apiThirdMatch.score.p) method = "P";
+    else if (diff === 2) method = "2";
+    else if (diff >= 3) method = "3";
+    
+    actualThirdResult = { team: winnerTeam, method: method };
+  }
+  
+  // Sla op zodat we niet opnieuw hoeven te zoeken in de modal
+  window.currentActualThirdResult = actualThirdResult;  
   
   for (const user in poolData) {
     const preds = poolData[user];
@@ -1393,6 +1460,19 @@ async function renderLeaderboard() {
     // Tel handmatige First Goal Bonus uit kolom D mee
     if (preds.first_goal_bonus) {
       totalScore += parseInt(preds.first_goal_bonus) || 0;
+    }
+
+    // --- 3E PLAATS BONUS (Kolom E / Third) ---
+    const rawThirdVal = preds.third || preds.Third || preds.third_place || "";
+    const thirdPick = parseThirdPlacePick(rawThirdVal);
+    
+    if (thirdPick && actualThirdResult) {
+      if (thirdPick.team === actualThirdResult.team) {
+        totalScore += 14; // Goede winnaar voorspeld (+14 pts)
+        if (thirdPick.method === actualThirdResult.method) {
+          totalScore += 3;  // Exacte marge/penalty bonus (+3 pts)
+        }
+      }
     }
     
     apiData.matches.forEach(match => {
@@ -1544,6 +1624,51 @@ function showParticipantBreakdown(userName) {
                 <td style="padding: 10px; text-align: right; color: #16a34a;">+${firstGoalBonus} pts</td>
             </tr>
         `;
+    }
+
+    // --- 3E PLAATS WEERGAVE IN MODAL ---
+    const rawThirdVal = preds.third || preds.Third || preds.third_place || "";
+    const thirdPick = parseThirdPlacePick(rawThirdVal);
+    const actualThirdResult = window.currentActualThirdResult;
+
+    if (thirdPick || (rawThirdVal !== "" && rawThirdVal !== "-" && rawThirdVal !== "0-")) {
+        let thirdPoints = 0;
+        let resultText = "-";
+        let methodText = "";
+        
+        if (actualThirdResult) {
+            const actualWinnerName = actualThirdResult.team === "F" ? "Frankrijk" : "Engeland";
+            const actualMethodName = actualThirdResult.method === "P" ? "(pen)" : `(+${actualThirdResult.method})`;
+            resultText = `${actualWinnerName} ${actualMethodName}`;
+            
+            if (thirdPick && thirdPick.team === actualThirdResult.team) {
+                thirdPoints += 14;
+                if (thirdPick.method === actualThirdResult.method) {
+                    thirdPoints += 3;
+                    methodText = " <small style='color:#3b82f6;'>+Uitslag</small>";
+                }
+            }
+        }
+        
+        let pickText = "-";
+        if (thirdPick) {
+            const pickWinnerName = thirdPick.team === "F" ? "Frankrijk" : "Engeland";
+            const pickMethodName = thirdPick.method === "P" ? "(pen)" : `(+${thirdPick.method})`;
+            pickText = `${pickWinnerName} ${pickMethodName}`;
+        } else if (rawThirdVal && rawThirdVal !== "-") {
+            pickText = rawThirdVal; 
+        }
+        
+        if (pickText !== "-") {
+            html += `
+                <tr style="background: #f8fafc; border-bottom: 1px solid #e5e7eb;">
+                    <td style="padding: 10px; color: #1e293b; font-weight: 500;">🥉 3e Plaats (Frankrijk - Engeland)</td>
+                    <td style="padding: 10px; text-align: center; font-weight:500;">${pickText}</td>
+                    <td style="padding: 10px; text-align: center; color: #666;">${resultText}</td>
+                    <td style="padding: 10px; text-align: right; font-weight: bold; color: ${thirdPoints > 0 ? '#3b82f6' : '#9ca3af'};">${thirdPoints > 0 ? `+${thirdPoints}${methodText}` : '0'} pts</td>
+                </tr>
+            `;
+        }
     }
 
     apiData.matches.forEach(match => {
