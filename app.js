@@ -1131,6 +1131,7 @@ function findMatchPredictionsKey(t1, t2) {
 }
 
 async function renderTodayMatches(targetDateString) {
+  console.log(targetDateString)
   const container = document.getElementById('container-today-matches');
   if (!container) return;
   const t = translations[currentLang] || translations['nl'];
