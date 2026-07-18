@@ -922,6 +922,12 @@ function collectAndSave() {
         const el = document.getElementById(id);
         if(el && el.value) alleData[id] = el.value;
     });
+    
+    // --- NIEUW: VANG COLUMN E (Third1E) ---
+    const thirdEl = document.getElementById('third');
+    if (thirdEl && thirdEl.value) {
+        alleData['Third1E'] = thirdEl.value; // Dit is de sleutel die in je Sheet aankomt
+    }
 
     savePredictions(alleData);
 }
