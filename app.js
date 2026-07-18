@@ -1188,9 +1188,75 @@ async function renderTodayMatches(targetDateString) {
     `;
     
     // --- BEPAAL FASE ---
+    // --- BEPAAL FASE ---
+    const isThirdPlaceMatch = match.round && (match.round.includes("Third") || match.round.includes("3rd") || match.round.includes("Play-off"));
     const isKnockout = match.round.includes("Round") || match.round.includes("Quarter") || match.round.includes("Semi") || match.round.includes("Final");
 
-    if (!isKnockout) {
+    if (isThirdPlaceMatch) {
+      // ==========================================
+      // 3E PLAATS LOGICA (Kolom E / Third)
+      // ==========================================
+      let totalPredsCount = 0;
+      
+      for (const pName in allParticipants) {
+        const preds = allParticipants[pName];
+        const rawThirdVal = preds.third || preds.Third || preds.third_place || "";
+        const thirdPick = parseThirdPlacePick(rawThirdVal);
+        
+        if (thirdPick || (rawThirdVal !== "" && rawThirdVal !== "-" && rawThirdVal !== "0-" && rawThirdVal !== "undefined")) {
+          totalPredsCount++;
+          let pointsEarned = 0;
+          let calculationText = '';
+          
+          if (isFinished) {
+            const diff = Math.abs(actH - actA);
+            let actualMethodVal = "1";
+            if (match.score.p) actualMethodVal = "P";
+            else if (diff === 2) actualMethodVal = "2";
+            else if (diff >= 3) actualMethodVal = "3";
+            
+            let actualWinnerTeam = null;
+            const winnerName = actH > actA ? match.team1 : (actA > actH ? match.team2 : 'Draw');
+            if (winnerName === 'Draw' && match.score.p) {
+              const penWinner = match.score.p[0] > match.score.p[1] ? match.team1 : match.team2;
+              actualWinnerTeam = normalizeTeamName(penWinner) === "france" ? "F" : "E";
+            } else {
+              actualWinnerTeam = normalizeTeamName(winnerName) === "france" ? "F" : "E";
+            }
+            
+            if (thirdPick && thirdPick.team === actualWinnerTeam) {
+              pointsEarned += 14;
+              if (thirdPick.method === actualMethodVal) {
+                pointsEarned += 3;
+              }
+            }
+            calculationText = ` ➡️ <span style="color:${pointsEarned > 0 ? '#007bff' : '#ef4444'}; font-weight:bold; margin-left:4px;">(${pointsEarned} pts)</span>`;
+          }
+          
+          let pickDisplay = rawThirdVal;
+          if (thirdPick) {
+            const pickWinnerName = thirdPick.team === "F" ? "Frankrijk" : "Engeland";
+            const pickMethodName = thirdPick.method === "P" ? "(pen)" : `(+${thirdPick.method})`;
+            pickDisplay = `<b>${pickWinnerName}</b> <span style="color:#6b7280; font-size: 11px;">${pickMethodName}</span>`;
+          }
+          
+          html += `
+            <div style="display:flex; justify-content:space-between; font-size:14px; padding:4px 0; border-bottom:1px dashed #e9ecef; color:#333;">
+              <span style="font-weight:500;">${pName}</span>
+              <span style="text-align:right;">${pickDisplay}${calculationText}</span>
+            </div>
+          `;
+        }
+      }
+      
+      if (totalPredsCount === 0) {
+        html += `<div style="font-size:13px; color:#999; font-style:italic; padding:5px 0;">Geen voorspellingen ingevuld voor deze wedstrijd.</div>`;
+      }
+
+    } else if (!isKnockout) {
+      // ==========================================
+      // GROEPSFASE LOGICA (Je originele code)
+      // ==========================================
       // ==========================================
       // GROEPSFASE LOGICA (Je originele code)
       // ==========================================
