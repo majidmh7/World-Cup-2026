@@ -1188,9 +1188,18 @@ async function renderTodayMatches(targetDateString) {
     `;
     
     // --- BEPAAL FASE ---
-    // --- BEPAAL FASE ---
-    const isThirdPlaceMatch = match.round && (match.round.includes("Third") || match.round.includes("3rd") || match.round.includes("Play-off"));
-    const isKnockout = match.round.includes("Round") || match.round.includes("Quarter") || match.round.includes("Semi") || match.round.includes("Final");
+    // --- BEPAAL FASE (Met case-insensitive & landnamen fix) ---
+    const roundLower = String(match.round || "").toLowerCase();
+    const t1Norm = normalizeTeamName(match.team1);
+    const t2Norm = normalizeTeamName(match.team2);
+    const isFrEnMatch = (t1Norm === "france" && t2Norm === "england") || (t1Norm === "england" && t2Norm === "france");
+    
+    const isThirdPlaceMatch = roundLower.includes("third") || roundLower.includes("3rd") || roundLower.includes("play-off") || isFrEnMatch;
+    const isKnockout = roundLower.includes("round") || roundLower.includes("quarter") || roundLower.includes("semi") || roundLower.includes("final") || isThirdPlaceMatch;
+
+    // 🕵️‍♂️ DEBUG LOGGING IN DE CONSOLE
+    console.groupCollapsed(`🔍 Check Match: ${match.team1} vs ${match.team2} (${match.round})`);
+    console.log("Is 3e plaats wedstrijd?", isThirdPlaceMatch);
 
     if (isThirdPlaceMatch) {
       // ==========================================
@@ -1200,10 +1209,13 @@ async function renderTodayMatches(targetDateString) {
       
       for (const pName in allParticipants) {
         const preds = allParticipants[pName];
-        const rawThirdVal = preds.third || preds.Third || preds.third_place || "";
+        // Check alle mogelijke hoofdletter-variaties van de kolomnaam uit Google Sheets
+        const rawThirdVal = preds.third || preds.Third || preds.THIRD || preds.third_place || "";
         const thirdPick = parseThirdPlacePick(rawThirdVal);
         
-        if (thirdPick || (rawThirdVal !== "" && rawThirdVal !== "-" && rawThirdVal !== "0-" && rawThirdVal !== "undefined")) {
+        console.log(`Deelnemer: ${pName} | Ruwe data uit sheet: "${rawThirdVal}" | Geparst:`, thirdPick);
+
+        if (thirdPick || (rawThirdVal && rawThirdVal !== "-" && rawThirdVal !== "0-" && rawThirdVal !== "undefined")) {
           totalPredsCount++;
           let pointsEarned = 0;
           let calculationText = '';
@@ -1248,6 +1260,9 @@ async function renderTodayMatches(targetDateString) {
           `;
         }
       }
+      
+      console.log(`Totaal aantal gevonden 3e plaats voorspellingen: ${totalPredsCount}`);
+      console.groupEnd();
       
       if (totalPredsCount === 0) {
         html += `<div style="font-size:13px; color:#999; font-style:italic; padding:5px 0;">Geen voorspellingen ingevuld voor deze wedstrijd.</div>`;
