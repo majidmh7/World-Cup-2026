@@ -1151,8 +1151,10 @@ async function renderTodayMatches(targetDateString) {
   
   const allParticipants = await fetchAllDatabasePredictions();
   let html = '';
-  
+
+  console.log(selectedMatches)
   selectedMatches.forEach(match => {
+    console.log("DEBUG: Bezig met verwerken match:", match.team1, "vs", match.team2, "ronde:", match.round);
     const isFinished = match.score && match.score.ft;
     let actH = isFinished ? match.score.ft[0] : null;
     let actA = isFinished ? match.score.ft[1] : null;
