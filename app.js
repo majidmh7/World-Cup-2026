@@ -1138,6 +1138,9 @@ async function renderTodayMatches(targetDateString) {
   container.innerHTML = `<p style="text-align:center; color:#666; font-family:sans-serif; margin-top:20px;">${t.loading}</p>`;
   
   const data = await fetchWorldCupData();
+  console.log("=a===")
+  console.log(data)
+  console.log("=a===")
   if (!data || !data.matches) {
     container.innerHTML = `<p style="text-align:center; padding:20px; font-family:sans-serif;">${t.noMatches}</p>`;
     return;
@@ -1151,7 +1154,9 @@ async function renderTodayMatches(targetDateString) {
   }
   
   const allParticipants = await fetchAllDatabasePredictions();
+  console.log("====")
   console.log(allParticipants)
+  console.log("====")
   let html = '';
 
   console.log(selectedMatches)
