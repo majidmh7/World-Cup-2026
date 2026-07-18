@@ -1193,6 +1193,11 @@ async function renderTodayMatches(targetDateString) {
     const t1Norm = normalizeTeamName(match.team1);
     const t2Norm = normalizeTeamName(match.team2);
     const isFrEnMatch = (t1Norm === "france" && t2Norm === "england") || (t1Norm === "england" && t2Norm === "france");
+
+    console.log(roundLower)
+    console.log(t1Norm)
+    console.log(t2Norm)
+    console.log(isFrEnMatch)
     
     const isThirdPlaceMatch = roundLower.includes("third") || roundLower.includes("3rd") || roundLower.includes("play-off") || isFrEnMatch;
     const isKnockout = roundLower.includes("round") || roundLower.includes("quarter") || roundLower.includes("semi") || roundLower.includes("final") || isThirdPlaceMatch;
