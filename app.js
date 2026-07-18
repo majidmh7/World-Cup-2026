@@ -1901,3 +1901,11 @@ function closePouleModal() {
     const modalOverlay = document.getElementById('poule-modal-overlay');
     if (modalOverlay) modalOverlay.style.display = 'none';
 }
+
+// --- VERIFICATIE TEST FUNCTIE ---
+function checkVersion() {
+    const timestamp = "2026-07-19 00:30:00";
+    console.log("🚀 LATEST VERSION LOADED!");
+    console.log("⏱ Build Timestamp:", timestamp);
+    return "Version 8888 is active.";
+}
