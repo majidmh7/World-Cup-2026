@@ -1565,7 +1565,7 @@ async function renderLeaderboard() {
     totalScore += parseInt(preds.top_scorer) || 0;
     totalScore += parseInt(preds.most_cards) || 0;
     totalScore += parseInt(preds.own_goals) || 0;
-    totalScore += parseInt(preds.wife_privilege) || 0;
+    // totalScore += parseInt(preds.wife_privilege) || 0;
 
     // --- 3E PLAATS BONUS (Kolom E / Third) ---
     const rawThirdVal = preds.third || preds.Third || preds.third_place || "";
@@ -1675,17 +1675,36 @@ async function renderLeaderboard() {
   `;
   
   scoreboard.forEach((row, idx) => {
-    html += `
-      <tr onclick="showParticipantBreakdown('${row.name.replace(/'/g, "\\'")}')" 
-          style="border-bottom: 1px solid #dee2e6; cursor: pointer; transition: background 0.15s;" 
-          onmouseover="this.style.backgroundColor='#f1f5f9'" 
-          onmouseout="this.style.backgroundColor='transparent'">
-        <td style="padding: 12px;"><strong>${idx + 1}</strong></td>
-        <td style="padding: 12px;">${row.name}</td>
-        <td style="padding: 12px; color: #28a745; font-weight: bold;">${row.score} pts</td>
-      </tr>
-    `;
-  });
+  // Bepaal de sticker voor de top 5
+  let badge = "";
+  if (idx === 0) badge = "🥇 ";      // Gold medal
+  else if (idx === 1) badge = "🥈 "; // Silver medal
+  else if (idx === 2) badge = "🥉 "; // Bronze medal
+  else if (idx === 3) badge = "🪙 "; // Copper medal / coin
+  else if (idx === 4) badge = "🛡️ "; // Iron badge / shield
+
+  html += `
+    <tr onclick="showParticipantBreakdown('${row.name.replace(/'/g, "\\'")}')" 
+        style="border-bottom: 1px solid #dee2e6; cursor: pointer; transition: background 0.15s;" 
+        onmouseover="this.style.backgroundColor='#f1f5f9'" 
+        onmouseout="this.style.backgroundColor='transparent'">
+      <td style="padding: 12px;"><strong>${idx + 1}</strong></td>
+      <td style="padding: 12px;">${badge}${row.name}</td>
+      <td style="padding: 12px; color: #28a745; font-weight: bold;">${row.score} pts</td>
+    </tr>
+  `;
+});
+  //   html += `
+  //     <tr onclick="showParticipantBreakdown('${row.name.replace(/'/g, "\\'")}')" 
+  //         style="border-bottom: 1px solid #dee2e6; cursor: pointer; transition: background 0.15s;" 
+  //         onmouseover="this.style.backgroundColor='#f1f5f9'" 
+  //         onmouseout="this.style.backgroundColor='transparent'">
+  //       <td style="padding: 12px;"><strong>${idx + 1}</strong></td>
+  //       <td style="padding: 12px;">${row.name}</td>
+  //       <td style="padding: 12px; color: #28a745; font-weight: bold;">${row.score} pts</td>
+  //     </tr>
+  //   `;
+  // });
   html += '</tbody></table>';
   container.innerHTML = html;
 }
@@ -1725,7 +1744,7 @@ function showParticipantBreakdown(userName) {
         { label: "🏆 Topscorer Bonus", pts: parseInt(preds.top_scorer) || 0 },
         { label: "🟨 Most Cards Bonus", pts: parseInt(preds.most_cards) || 0 },
         { label: "⚽ Own Goals Bonus", pts: parseInt(preds.own_goals) || 0 },
-        { label: "👑 Wife Privilege", pts: parseInt(preds.wife_privilege) || 0 }
+        // { label: "👑 Wife Privilege", pts: parseInt(preds.wife_privilege) || 0 }
     ];
     
     bonusItems.forEach(item => {
