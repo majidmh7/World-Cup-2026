@@ -1560,9 +1560,12 @@ async function renderLeaderboard() {
     let totalScore = 0;
     
     // Tel handmatige First Goal Bonus uit kolom D mee
-    if (preds.first_goal_bonus) {
-      totalScore += parseInt(preds.first_goal_bonus) || 0;
-    }
+    // Tel alle bonuspunten uit de Google Sheet kolommen D, F, G, H en I mee
+    totalScore += parseInt(preds.first_goal_bonus) || 0;
+    totalScore += parseInt(preds.top_scorer) || 0;
+    totalScore += parseInt(preds.most_cards) || 0;
+    totalScore += parseInt(preds.own_goals) || 0;
+    totalScore += parseInt(preds.wife_privilege) || 0;
 
     // --- 3E PLAATS BONUS (Kolom E / Third) ---
     const rawThirdVal = preds.third || preds.Third || preds.third_place || "";
@@ -1645,14 +1648,14 @@ async function renderLeaderboard() {
     });
     
     // Bonusvragen
-    if (preds['bq1'] === finalTopScorer) totalScore += 15;
-    if (preds['bq2'] === finalMostCards) totalScore += 10;
-    if (preds['bq3'] === finalMostOwnGoals) totalScore += 10;
-    if (preds['bq4'] !== undefined) {
-      const guessedMin = parseInt(preds['bq4']);
-      if (guessedMin === finalFirstGoalMinute) totalScore += 15;
-      else if (Math.abs(guessedMin - finalFirstGoalMinute) <= 3) totalScore += 5;
-    }
+    // if (preds['bq1'] === finalTopScorer) totalScore += 15;
+    // if (preds['bq2'] === finalMostCards) totalScore += 10;
+    // if (preds['bq3'] === finalMostOwnGoals) totalScore += 10;
+    // if (preds['bq4'] !== undefined) {
+    //   const guessedMin = parseInt(preds['bq4']);
+    //   if (guessedMin === finalFirstGoalMinute) totalScore += 15;
+    //   else if (Math.abs(guessedMin - finalFirstGoalMinute) <= 3) totalScore += 5;
+    // }
     
     scoreboard.push({ name: user, score: totalScore });
   }
@@ -1716,17 +1719,27 @@ function showParticipantBreakdown(userName) {
                 <tbody>
     `;
 
-    const firstGoalBonus = parseInt(preds.first_goal_bonus) || 0;
-    if (firstGoalBonus > 0) {
-        html += `
-            <tr style="background: #f0fdf4; font-weight: bold; border-bottom: 1px solid #e5e7eb;">
-                <td style="padding: 10px; color: #16a34a;">🎁 First Goal Bonus (Column D)</td>
-                <td style="padding: 10px; text-align: center;">-</td>
-                <td style="padding: 10px; text-align: center;">-</td>
-                <td style="padding: 10px; text-align: right; color: #16a34a;">+${firstGoalBonus} pts</td>
-            </tr>
-        `;
-    }
+    // Lijst van alle directe bonuspunten uit Google Sheets
+    const bonusItems = [
+        { label: "🎁 First Goal Bonus", pts: parseInt(preds.first_goal_bonus) || 0 },
+        { label: "🏆 Topscorer Bonus", pts: parseInt(preds.top_scorer) || 0 },
+        { label: "🟨 Most Cards Bonus", pts: parseInt(preds.most_cards) || 0 },
+        { label: "⚽ Own Goals Bonus", pts: parseInt(preds.own_goals) || 0 },
+        { label: "👑 Wife Privilege", pts: parseInt(preds.wife_privilege) || 0 }
+    ];
+    
+    bonusItems.forEach(item => {
+        if (item.pts > 0) {
+            html += `
+                <tr style="background: #f0fdf4; font-weight: bold; border-bottom: 1px solid #e5e7eb;">
+                    <td style="padding: 10px; color: #16a34a;">${item.label}</td>
+                    <td style="padding: 10px; text-align: center;">-</td>
+                    <td style="padding: 10px; text-align: center;">-</td>
+                    <td style="padding: 10px; text-align: right; color: #16a34a;">+${item.pts} pts</td>
+                </tr>
+            `;
+        }
+    });
 
     // --- 3E PLAATS WEERGAVE IN MODAL ---
     const rawThirdVal = preds.third || preds.Third || preds.third_place || "";
@@ -1870,20 +1883,20 @@ function showParticipantBreakdown(userName) {
     });
 
     // Bonusvragen
-    let bonusQuestionsHtml = "";
-    if (preds['bq1'] === finalTopScorer) { bonusQuestionsHtml += `<tr style="border-bottom: 1px solid #f3f4f6; background:#fffbeb;"><td style="padding: 8px; font-weight:500;">🏆 Topscorer</td><td style="padding: 8px; text-align:center;">${preds['bq1']}</td><td style="padding: 8px; text-align:center;">${finalTopScorer}</td><td style="padding: 8px; text-align:right; font-weight:bold; color:#d97706;">+15 pts</td></tr>`; }
-    if (preds['bq2'] === finalMostCards) { bonusQuestionsHtml += `<tr style="border-bottom: 1px solid #f3f4f6; background:#fffbeb;"><td style="padding: 8px; font-weight:500;">🟨 Meeste Kaarten</td><td style="padding: 8px; text-align:center;">${preds['bq2']}</td><td style="padding: 8px; text-align:center;">${finalMostCards}</td><td style="padding: 8px; text-align:right; font-weight:bold; color:#d97706;">+10 pts</td></tr>`; }
-    if (preds['bq3'] === finalMostOwnGoals) { bonusQuestionsHtml += `<tr style="border-bottom: 1px solid #f3f4f6; background:#fffbeb;"><td style="padding: 8px; font-weight:500;">⚽ Eigen Doelpunten</td><td style="padding: 8px; text-align:center;">${preds['bq3']}</td><td style="padding: 8px; text-align:center;">${finalMostOwnGoals}</td><td style="padding: 8px; text-align:right; font-weight:bold; color:#d97706;">+10 pts</td></tr>`; }
+    // let bonusQuestionsHtml = "";
+    // if (preds['bq1'] === finalTopScorer) { bonusQuestionsHtml += `<tr style="border-bottom: 1px solid #f3f4f6; background:#fffbeb;"><td style="padding: 8px; font-weight:500;">🏆 Topscorer</td><td style="padding: 8px; text-align:center;">${preds['bq1']}</td><td style="padding: 8px; text-align:center;">${finalTopScorer}</td><td style="padding: 8px; text-align:right; font-weight:bold; color:#d97706;">+15 pts</td></tr>`; }
+    // if (preds['bq2'] === finalMostCards) { bonusQuestionsHtml += `<tr style="border-bottom: 1px solid #f3f4f6; background:#fffbeb;"><td style="padding: 8px; font-weight:500;">🟨 Meeste Kaarten</td><td style="padding: 8px; text-align:center;">${preds['bq2']}</td><td style="padding: 8px; text-align:center;">${finalMostCards}</td><td style="padding: 8px; text-align:right; font-weight:bold; color:#d97706;">+10 pts</td></tr>`; }
+    // if (preds['bq3'] === finalMostOwnGoals) { bonusQuestionsHtml += `<tr style="border-bottom: 1px solid #f3f4f6; background:#fffbeb;"><td style="padding: 8px; font-weight:500;">⚽ Eigen Doelpunten</td><td style="padding: 8px; text-align:center;">${preds['bq3']}</td><td style="padding: 8px; text-align:center;">${finalMostOwnGoals}</td><td style="padding: 8px; text-align:right; font-weight:bold; color:#d97706;">+10 pts</td></tr>`; }
     
-    if (preds['bq4'] !== undefined) {
-        const guessedMin = parseInt(preds['bq4']);
-        if (guessedMin === finalFirstGoalMinute) {
-            bonusQuestionsHtml += `<tr style="border-bottom: 1px solid #f3f4f6; background:#fffbeb;"><td style="padding: 8px; font-weight:500;">⏱ Minuut 1e Goal</td><td style="padding: 8px; text-align:center;">${guessedMin}'</td><td style="padding: 8px; text-align:center;">${finalFirstGoalMinute}'</td><td style="padding: 8px; text-align:right; font-weight:bold; color:#d97706;">+15 pts</td></tr>`;
-        } else if (Math.abs(guessedMin - finalFirstGoalMinute) <= 3) {
-            bonusQuestionsHtml += `<tr style="border-bottom: 1px solid #f3f4f6; background:#fffbeb;"><td style="padding: 8px; font-weight:500;">⏱ Minuut 1e Goal (In de buurt)</td><td style="padding: 8px; text-align:center;">${guessedMin}'</td><td style="padding: 8px; text-align:center;">${finalFirstGoalMinute}'</td><td style="padding: 8px; text-align:right; font-weight:bold; color:#d97706;">+5 pts</td></tr>`;
-        }
-    }
-    html += bonusQuestionsHtml;
+    // if (preds['bq4'] !== undefined) {
+    //     const guessedMin = parseInt(preds['bq4']);
+    //     if (guessedMin === finalFirstGoalMinute) {
+    //         bonusQuestionsHtml += `<tr style="border-bottom: 1px solid #f3f4f6; background:#fffbeb;"><td style="padding: 8px; font-weight:500;">⏱ Minuut 1e Goal</td><td style="padding: 8px; text-align:center;">${guessedMin}'</td><td style="padding: 8px; text-align:center;">${finalFirstGoalMinute}'</td><td style="padding: 8px; text-align:right; font-weight:bold; color:#d97706;">+15 pts</td></tr>`;
+    //     } else if (Math.abs(guessedMin - finalFirstGoalMinute) <= 3) {
+    //         bonusQuestionsHtml += `<tr style="border-bottom: 1px solid #f3f4f6; background:#fffbeb;"><td style="padding: 8px; font-weight:500;">⏱ Minuut 1e Goal (In de buurt)</td><td style="padding: 8px; text-align:center;">${guessedMin}'</td><td style="padding: 8px; text-align:center;">${finalFirstGoalMinute}'</td><td style="padding: 8px; text-align:right; font-weight:bold; color:#d97706;">+5 pts</td></tr>`;
+    //     }
+    // }
+    // html += bonusQuestionsHtml;
 
     html += `
                 </tbody>
